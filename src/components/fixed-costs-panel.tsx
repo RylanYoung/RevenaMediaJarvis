@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FormField, inputClass, primaryButtonClass } from "@/components/ui/form-field";
 
 type FixedCost = {
   id: string;
@@ -75,42 +76,33 @@ export function FixedCostsPanel() {
 
   return (
     <div>
-      <form onSubmit={addCost} className="flex flex-wrap items-end gap-3 border-b border-border p-5">
-        <label className="flex min-w-[160px] flex-1 flex-col gap-1.5">
-          <span className="text-xs font-medium text-muted">Name</span>
+      <form onSubmit={addCost} className="grid grid-cols-1 gap-4 border-b border-border p-6 sm:grid-cols-[2fr_1fr_auto]">
+        <FormField label="Name">
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Lead Distro subscription"
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+            className={inputClass}
           />
-        </label>
-        <label className="flex w-36 flex-col gap-1.5">
-          <span className="text-xs font-medium text-muted">Monthly (AUD)</span>
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={submitting}
-          className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-        >
-          + Add cost
-        </button>
+        </FormField>
+        <FormField label="Monthly (AUD)">
+          <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className={inputClass} />
+        </FormField>
+        <div className="flex items-end">
+          <button type="submit" disabled={submitting} className={`${primaryButtonClass} w-full sm:w-auto`}>
+            + Add cost
+          </button>
+        </div>
       </form>
 
       {costs === null && !error && (
-        <div className="p-5">
+        <div className="p-6">
           <EmptyState title="Loading…" description="Fetching fixed costs." />
         </div>
       )}
       {error && (
-        <div className="p-5">
+        <div className="p-6">
           <EmptyState
             title="Not connected yet"
             description="Add Supabase keys in Settings, then run supabase/schema.sql, to start logging fixed costs here."
@@ -118,7 +110,7 @@ export function FixedCostsPanel() {
         </div>
       )}
       {costs !== null && costs.length === 0 && !error && (
-        <div className="p-5">
+        <div className="p-6">
           <EmptyState
             title="No fixed costs logged yet"
             description="Add recurring software costs (Lead Distro, GHL, Zapier, Stripe fees, etc.) to get an accurate margin."
@@ -129,18 +121,18 @@ export function FixedCostsPanel() {
         <>
           <div className="divide-y divide-border">
             {costs.map((cost) => (
-              <div key={cost.id} className="flex items-center justify-between px-5 py-3 text-sm">
+              <div key={cost.id} className="flex items-center justify-between px-6 py-4 text-base">
                 <div>
                   <span className="text-foreground">{cost.name}</span>
-                  <span className="ml-2 text-xs text-muted">since {formatDate(cost.created_at)}</span>
+                  <span className="ml-3 text-sm text-muted">since {formatDate(cost.created_at)}</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-foreground">{currency(cost.monthly_amount)}/mo</span>
+                <div className="flex items-center gap-4">
+                  <span className="font-mono text-lg text-foreground">{currency(cost.monthly_amount)}/mo</span>
                   <button
                     type="button"
                     onClick={() => remove(cost.id)}
                     aria-label="Remove cost"
-                    className="text-muted transition-colors hover:text-negative"
+                    className="flex h-8 w-8 items-center justify-center rounded-md text-lg text-muted transition-colors hover:bg-negative/10 hover:text-negative"
                   >
                     ×
                   </button>
@@ -148,9 +140,9 @@ export function FixedCostsPanel() {
               </div>
             ))}
           </div>
-          <div className="flex items-center justify-between border-t border-border px-5 py-3 text-sm">
+          <div className="flex items-center justify-between border-t border-border px-6 py-4 text-base">
             <span className="text-muted">Total</span>
-            <span className="font-mono font-medium text-foreground">{currency(total)}/mo</span>
+            <span className="font-mono text-lg font-medium text-foreground">{currency(total)}/mo</span>
           </div>
         </>
       )}

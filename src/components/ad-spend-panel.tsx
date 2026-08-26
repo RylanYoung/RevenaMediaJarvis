@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FormField, inputClass, primaryButtonClass } from "@/components/ui/form-field";
 
 type AdSpendEntry = {
   id: number;
@@ -76,62 +77,51 @@ export function AdSpendPanel() {
 
   return (
     <div>
-      <form onSubmit={addEntry} className="flex flex-wrap items-end gap-3 border-b border-border p-5">
-        <label className="flex w-28 flex-col gap-1.5">
-          <span className="text-xs font-medium text-muted">Funnel</span>
+      <form onSubmit={addEntry} className="grid grid-cols-1 gap-4 border-b border-border p-6 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_2fr_1fr_auto]">
+        <FormField label="Funnel">
           <select
             value={funnel}
             onChange={(e) => setFunnel(e.target.value as "b2c" | "b2b")}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+            className={inputClass}
           >
             <option value="b2c">B2C</option>
             <option value="b2b">B2B</option>
           </select>
-        </label>
-        <label className="flex w-32 flex-col gap-1.5">
-          <span className="text-xs font-medium text-muted">Amount (AUD)</span>
-          <input
-            type="number"
-            value={cost}
-            onChange={(e) => setCost(e.target.value)}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
-          />
-        </label>
-        <label className="flex min-w-[140px] flex-1 flex-col gap-1.5">
-          <span className="text-xs font-medium text-muted">Label</span>
+        </FormField>
+        <FormField label="Amount (AUD)">
+          <input type="number" value={cost} onChange={(e) => setCost(e.target.value)} className={inputClass} />
+        </FormField>
+        <FormField label="Label">
           <input
             type="text"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             placeholder="e.g. Meta boost spend"
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+            className={inputClass}
           />
-        </label>
-        <label className="flex w-40 flex-col gap-1.5">
-          <span className="text-xs font-medium text-muted">Date</span>
+        </FormField>
+        <FormField label="Date">
           <input
             type="date"
             value={spendDate}
             onChange={(e) => setSpendDate(e.target.value)}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+            className={inputClass}
           />
-        </label>
-        <button
-          type="submit"
-          disabled={submitting}
-          className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-        >
-          + Add spend
-        </button>
+        </FormField>
+        <div className="flex items-end">
+          <button type="submit" disabled={submitting} className={`${primaryButtonClass} w-full lg:w-auto`}>
+            + Add spend
+          </button>
+        </div>
       </form>
 
       {entries === null && !error && (
-        <div className="p-5">
+        <div className="p-6">
           <EmptyState title="Loading…" description="Fetching manual ad spend entries." />
         </div>
       )}
       {error && (
-        <div className="p-5">
+        <div className="p-6">
           <EmptyState
             title="Not connected yet"
             description="Add Supabase keys in Settings to start logging ad spend here."
@@ -139,7 +129,7 @@ export function AdSpendPanel() {
         </div>
       )}
       {entries !== null && entries.length === 0 && !error && (
-        <div className="p-5">
+        <div className="p-6">
           <EmptyState
             title="No manual ad spend yet"
             description="Log spend here while Lead Distro / Meta aren't synced yet — it counts the same as synced spend everywhere else."
@@ -149,21 +139,21 @@ export function AdSpendPanel() {
       {entries !== null && entries.length > 0 && (
         <div className="divide-y divide-border">
           {entries.map((entry) => (
-            <div key={entry.id} className="flex items-center justify-between px-5 py-3 text-sm">
+            <div key={entry.id} className="flex items-center justify-between px-6 py-4 text-base">
               <div>
                 <span className="text-foreground">{entry.campaign_name}</span>
-                <span className="ml-2 rounded-full bg-surface-hover px-2 py-0.5 text-[11px] uppercase text-muted">
+                <span className="ml-3 rounded-full bg-surface-hover px-2.5 py-1 text-xs uppercase text-muted">
                   {entry.funnel}
                 </span>
-                <span className="ml-2 text-xs text-muted">{formatDate(entry.spend_date)}</span>
+                <span className="ml-3 text-sm text-muted">{formatDate(entry.spend_date)}</span>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-foreground">{currency(entry.cost)}</span>
+              <div className="flex items-center gap-4">
+                <span className="font-mono text-lg text-foreground">{currency(entry.cost)}</span>
                 <button
                   type="button"
                   onClick={() => remove(entry.id)}
                   aria-label="Remove entry"
-                  className="text-muted transition-colors hover:text-negative"
+                  className="flex h-8 w-8 items-center justify-center rounded-md text-lg text-muted transition-colors hover:bg-negative/10 hover:text-negative"
                 >
                   ×
                 </button>

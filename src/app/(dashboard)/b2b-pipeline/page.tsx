@@ -5,14 +5,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PipelineBoard } from "@/components/pipeline-board";
 import { SyncButton } from "@/components/sync-button";
-
-const STAGES = [
-  { label: "Cost per Lead (CPL)", hint: "B2B ad spend ÷ leads — Meta" },
-  { label: "Leads", hint: "In from Meta / Lead Distro" },
-  { label: "Booked", hint: "Conversion from Called" },
-  { label: "Closed", hint: "Conversion from Booked" },
-  { label: "Avg. Deal Size", hint: "Revenue per closed client" },
-];
+import { B2BPipelineStats } from "@/components/b2b-metrics";
 
 export default function B2BPipelinePage() {
   return (
@@ -22,11 +15,7 @@ export default function B2BPipelinePage() {
         description="Leads land automatically from Meta / Lead Distro once connected. You move them by hand through Called, Booked, Closed, or Lost."
       />
 
-      <div className="reveal-group grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {STAGES.map((stage) => (
-          <StatTile key={stage.label} label={stage.label} value="—" hint={stage.hint} />
-        ))}
-      </div>
+      <B2BPipelineStats />
 
       <div className="mt-6">
         <Card>

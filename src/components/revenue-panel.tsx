@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FormField, inputClass, primaryButtonClass } from "@/components/ui/form-field";
 
 type RevenueEntry = {
   id: string;
@@ -74,51 +75,41 @@ export function RevenuePanel() {
 
   return (
     <div>
-      <form onSubmit={addEntry} className="flex flex-wrap items-end gap-3 border-b border-border p-5">
-        <label className="flex w-32 flex-col gap-1.5">
-          <span className="text-xs font-medium text-muted">Amount (AUD)</span>
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
-          />
-        </label>
-        <label className="flex min-w-[140px] flex-1 flex-col gap-1.5">
-          <span className="text-xs font-medium text-muted">Description</span>
+      <form onSubmit={addEntry} className="grid grid-cols-1 gap-4 border-b border-border p-6 sm:grid-cols-[1fr_2fr_1fr_auto]">
+        <FormField label="Amount (AUD)">
+          <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className={inputClass} />
+        </FormField>
+        <FormField label="Description">
           <input
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="e.g. Invoice — Excelled Electrical"
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+            className={inputClass}
           />
-        </label>
-        <label className="flex w-40 flex-col gap-1.5">
-          <span className="text-xs font-medium text-muted">Date</span>
+        </FormField>
+        <FormField label="Date">
           <input
             type="date"
             value={entryDate}
             onChange={(e) => setEntryDate(e.target.value)}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+            className={inputClass}
           />
-        </label>
-        <button
-          type="submit"
-          disabled={submitting}
-          className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-        >
-          + Add
-        </button>
+        </FormField>
+        <div className="flex items-end">
+          <button type="submit" disabled={submitting} className={`${primaryButtonClass} w-full sm:w-auto`}>
+            + Add revenue
+          </button>
+        </div>
       </form>
 
       {entries === null && !error && (
-        <div className="p-5">
+        <div className="p-6">
           <EmptyState title="Loading…" description="Fetching revenue entries." />
         </div>
       )}
       {error && (
-        <div className="p-5">
+        <div className="p-6">
           <EmptyState
             title="Not connected yet"
             description="Add Supabase keys in Settings, then run supabase/schema.sql, to start logging revenue here."
@@ -126,7 +117,7 @@ export function RevenuePanel() {
         </div>
       )}
       {entries !== null && entries.length === 0 && !error && (
-        <div className="p-5">
+        <div className="p-6">
           <EmptyState
             title="No manual entries yet"
             description="Stripe and Lead Distro revenue is added automatically once synced (see the breakdown above) — this form is for anything else, like cash or bank transfer payments."
@@ -136,18 +127,18 @@ export function RevenuePanel() {
       {entries !== null && entries.length > 0 && (
         <div className="divide-y divide-border">
           {entries.map((entry) => (
-            <div key={entry.id} className="flex items-center justify-between px-5 py-3 text-sm">
+            <div key={entry.id} className="flex items-center justify-between px-6 py-4 text-base">
               <div>
                 <span className="text-foreground">{entry.description || "Revenue entry"}</span>
-                <span className="ml-2 text-xs text-muted">{formatDate(entry.entry_date)}</span>
+                <span className="ml-3 text-sm text-muted">{formatDate(entry.entry_date)}</span>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-foreground">{currency(entry.amount)}</span>
+              <div className="flex items-center gap-4">
+                <span className="font-mono text-lg text-foreground">{currency(entry.amount)}</span>
                 <button
                   type="button"
                   onClick={() => remove(entry.id)}
                   aria-label="Remove entry"
-                  className="text-muted transition-colors hover:text-negative"
+                  className="flex h-8 w-8 items-center justify-center rounded-md text-lg text-muted transition-colors hover:bg-negative/10 hover:text-negative"
                 >
                   ×
                 </button>

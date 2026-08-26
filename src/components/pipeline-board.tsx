@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FormField, inputClass, primaryButtonClass } from "@/components/ui/form-field";
 
 type Stage = "lead" | "called" | "booked" | "closed" | "lost";
 
@@ -18,12 +19,15 @@ type Lead = {
 const FORWARD_STAGES: Stage[] = ["lead", "called", "booked", "closed"];
 const BOARD_STAGES: Stage[] = ["lead", "called", "booked", "closed", "lost"];
 
-const STAGE_META: Record<Stage, { title: string; hint: string }> = {
-  lead: { title: "Lead", hint: "In from Meta / Lead Distro" },
-  called: { title: "Called", hint: "First contact made" },
-  booked: { title: "Booked", hint: "Job/quote booked" },
-  closed: { title: "Closed", hint: "Job won" },
-  lost: { title: "Lost", hint: "Didn't convert" },
+// One consistent colour per stage — used for the column dot, the card's
+// left edge, and the drop-target highlight. Called = warning (amber),
+// Booked = accent (blue), Closed = positive (green), Lost = negative (red).
+const STAGE_META: Record<Stage, { title: string; hint: string; dot: string; border: string; ring: string }> = {
+  lead: { title: "Lead", hint: "In from Meta / Lead Distro", dot: "bg-muted", border: "border-l-muted", ring: "ring-muted/40" },
+  called: { title: "Called", hint: "First contact made", dot: "bg-warning", border: "border-l-warning", ring: "ring-warning/40" },
+  booked: { title: "Booked", hint: "Job/quote booked", dot: "bg-accent", border: "border-l-accent", ring: "ring-accent/40" },
+  closed: { title: "Closed", hint: "Job won", dot: "bg-positive", border: "border-l-positive", ring: "ring-positive/40" },
+  lost: { title: "Lost", hint: "Didn't convert", dot: "bg-negative", border: "border-l-negative", ring: "ring-negative/40" },
 };
 
 function currency(n: number) {
@@ -40,6 +44,8 @@ export function PipelineBoard() {
   const [name, setName] = useState("");
   const [dealValue, setDealValue] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverStage, setDragOverStage] = useState<Stage | null>(null);
 
   async function load() {
     setLoadError(null);
@@ -131,48 +137,44 @@ export function PipelineBoard() {
     <Card>
       <CardHeader
         title="Pipeline Board"
-        subtitle="Leads land here automatically from Meta / Lead Distro once connected — move them by hand as calls get made, jobs get booked, and deals close"
+        subtitle="Drag a card between columns, or use the buttons — leads land in Lead automatically from Meta / Lead Distro once connected"
       />
 
-      <div className="border-b border-border p-5">
-        <form onSubmit={addLead} className="flex flex-wrap items-end gap-3">
-          <label className="flex min-w-[160px] flex-1 flex-col gap-1.5">
-            <span className="text-xs font-medium text-muted">Lead name</span>
+      <div className="border-b border-border p-6">
+        <form onSubmit={addLead} className="grid grid-cols-1 gap-4 sm:grid-cols-[2fr_1fr_auto]">
+          <FormField label="Lead name">
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Smith Solar Install"
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+              className={inputClass}
             />
-          </label>
-          <label className="flex w-36 flex-col gap-1.5">
-            <span className="text-xs font-medium text-muted">Deal size (AUD)</span>
+          </FormField>
+          <FormField label="Deal size (AUD)">
             <input
               type="number"
               value={dealValue}
               onChange={(e) => setDealValue(e.target.value)}
               placeholder="Optional"
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+              className={inputClass}
             />
-          </label>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-          >
-            + Add lead
-          </button>
+          </FormField>
+          <div className="flex items-end">
+            <button type="submit" disabled={submitting} className={`${primaryButtonClass} w-full sm:w-auto`}>
+              + Add lead
+            </button>
+          </div>
         </form>
-        {loadError && <p className="mt-2 text-[11px] text-negative">{loadError}</p>}
+        {loadError && <p className="mt-3 text-sm text-negative">{loadError}</p>}
       </div>
 
       {leads === null && !loadError ? (
-        <div className="p-5">
+        <div className="p-6">
           <EmptyState title="Loading pipeline…" description="Fetching leads from Supabase." />
         </div>
       ) : leads === null && loadError ? (
-        <div className="p-5">
+        <div className="p-6">
           <EmptyState
             title="Pipeline not connected yet"
             description="Add SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY in Settings, then run supabase/schema.sql once."
@@ -182,50 +184,88 @@ export function PipelineBoard() {
         <>
           <div className="flex divide-x divide-border overflow-x-auto">
             {BOARD_STAGES.map((stage) => (
-              <div key={stage} className="w-56 shrink-0 p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{STAGE_META[stage].title}</p>
-                    <p className="text-[11px] text-muted">{STAGE_META[stage].hint}</p>
+              <div
+                key={stage}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOverStage(stage);
+                }}
+                onDragLeave={() => setDragOverStage((cur) => (cur === stage ? null : cur))}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const id = e.dataTransfer.getData("text/plain");
+                  if (id) move(id, stage);
+                  setDragOverStage(null);
+                }}
+                className={`w-80 shrink-0 p-5 transition-colors ${
+                  dragOverStage === stage ? "bg-surface-hover" : ""
+                }`}
+              >
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className={`h-2.5 w-2.5 rounded-full ${STAGE_META[stage].dot}`} />
+                    <div>
+                      <p className="text-base font-semibold text-foreground">{STAGE_META[stage].title}</p>
+                      <p className="text-xs text-muted">{STAGE_META[stage].hint}</p>
+                    </div>
                   </div>
-                  <span className="rounded-full bg-surface-hover px-2 py-0.5 text-xs font-mono text-muted">
+                  <span className="rounded-full bg-surface-hover px-2.5 py-1 text-sm font-mono text-muted">
                     {byStage[stage].length}
                   </span>
                 </div>
 
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                   {byStage[stage].length === 0 && (
-                    <p className="rounded-md border border-dashed border-border px-3 py-4 text-center text-xs text-muted">
-                      Empty
+                    <p
+                      className={`rounded-lg border-2 border-dashed px-3 py-8 text-center text-sm text-muted transition-colors ${
+                        dragOverStage === stage ? "border-accent" : "border-border"
+                      }`}
+                    >
+                      Drop here
                     </p>
                   )}
                   {byStage[stage].map((lead) => {
                     const idx = FORWARD_STAGES.indexOf(lead.stage);
                     return (
-                      <div key={lead.id} className="reveal rounded-md border border-border bg-surface-hover px-3 py-2">
+                      <div
+                        key={lead.id}
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData("text/plain", lead.id);
+                          e.dataTransfer.effectAllowed = "move";
+                          setDraggingId(lead.id);
+                        }}
+                        onDragEnd={() => {
+                          setDraggingId(null);
+                          setDragOverStage(null);
+                        }}
+                        className={`reveal cursor-grab rounded-lg border border-border border-l-4 ${STAGE_META[stage].border} bg-surface-hover px-4 py-3.5 active:cursor-grabbing ${
+                          draggingId === lead.id ? "opacity-40" : ""
+                        }`}
+                      >
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <p className="text-sm text-foreground">{lead.name}</p>
+                            <p className="text-base font-medium text-foreground">{lead.name}</p>
                             {lead.deal_value != null && (
-                              <p className="text-xs text-muted">{currency(lead.deal_value)}</p>
+                              <p className="text-sm text-muted">{currency(lead.deal_value)}</p>
                             )}
-                            <p className="text-[10px] text-muted">Added {formatDate(lead.created_at)}</p>
+                            <p className="mt-0.5 text-xs text-muted">Added {formatDate(lead.created_at)}</p>
                           </div>
                           <button
                             type="button"
                             onClick={() => remove(lead.id)}
                             aria-label="Remove lead"
-                            className="text-muted transition-colors hover:text-negative"
+                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-base text-muted transition-colors hover:bg-negative/10 hover:text-negative"
                           >
                             ×
                           </button>
                         </div>
-                        <div className="mt-2 flex flex-wrap gap-1.5">
+                        <div className="mt-3 flex flex-wrap gap-2">
                           {idx > 0 && (
                             <button
                               type="button"
                               onClick={() => move(lead.id, FORWARD_STAGES[idx - 1])}
-                              className="rounded border border-border px-2 py-1 text-[11px] text-muted transition-colors hover:border-accent hover:text-accent"
+                              className="rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted transition-colors hover:border-accent hover:text-accent"
                             >
                               ← Back
                             </button>
@@ -234,7 +274,7 @@ export function PipelineBoard() {
                             <button
                               type="button"
                               onClick={() => move(lead.id, FORWARD_STAGES[idx + 1])}
-                              className="rounded border border-border px-2 py-1 text-[11px] text-muted transition-colors hover:border-accent hover:text-accent"
+                              className="rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted transition-colors hover:border-accent hover:text-accent"
                             >
                               {STAGE_META[FORWARD_STAGES[idx + 1]].title} →
                             </button>
@@ -243,7 +283,7 @@ export function PipelineBoard() {
                             <button
                               type="button"
                               onClick={() => move(lead.id, "lost")}
-                              className="rounded border border-border px-2 py-1 text-[11px] text-muted transition-colors hover:border-negative hover:text-negative"
+                              className="rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted transition-colors hover:border-negative hover:text-negative"
                             >
                               Mark lost
                             </button>
@@ -252,7 +292,7 @@ export function PipelineBoard() {
                             <button
                               type="button"
                               onClick={() => move(lead.id, "lead")}
-                              className="rounded border border-border px-2 py-1 text-[11px] text-muted transition-colors hover:border-accent hover:text-accent"
+                              className="rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted transition-colors hover:border-accent hover:text-accent"
                             >
                               Revive
                             </button>
@@ -267,9 +307,9 @@ export function PipelineBoard() {
           </div>
 
           <div className="grid grid-cols-2 divide-x divide-border border-t border-border sm:grid-cols-4">
-            <ConversionStat label="Lead → Called" value={conversion.leadToCalled} />
-            <ConversionStat label="Called → Booked" value={conversion.calledToBooked} />
-            <ConversionStat label="Booked → Closed" value={conversion.bookedToClosed} />
+            <ConversionStat label="Lead → Called" value={conversion.leadToCalled} tone="warning" />
+            <ConversionStat label="Called → Booked" value={conversion.calledToBooked} tone="accent" />
+            <ConversionStat label="Booked → Closed" value={conversion.bookedToClosed} tone="positive" />
             <ConversionStat label="Lost Rate" value={conversion.lostRate} tone="negative" />
           </div>
         </>
@@ -278,11 +318,26 @@ export function PipelineBoard() {
   );
 }
 
-function ConversionStat({ label, value, tone }: { label: string; value: number | null; tone?: "negative" }) {
+function ConversionStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number | null;
+  tone: "warning" | "accent" | "positive" | "negative";
+}) {
+  const toneClass = {
+    warning: "text-warning",
+    accent: "text-accent",
+    positive: "text-positive",
+    negative: "text-negative",
+  }[tone];
+
   return (
-    <div className="px-5 py-4">
-      <p className="text-xs text-muted">{label}</p>
-      <p className={`mt-1 font-mono text-lg font-semibold ${tone === "negative" ? "text-negative" : "text-foreground"}`}>
+    <div className="px-6 py-5">
+      <p className="text-sm text-muted">{label}</p>
+      <p className={`mt-1 font-mono text-2xl font-semibold ${toneClass}`}>
         {value === null ? "—" : `${value.toFixed(0)}%`}
       </p>
     </div>

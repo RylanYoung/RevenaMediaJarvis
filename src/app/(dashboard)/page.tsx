@@ -5,6 +5,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SyncStatus } from "@/components/ui/sync-status";
 import { OverviewHero } from "@/components/overview-hero";
+import { B2BOverviewStats } from "@/components/b2b-metrics";
 
 export default function OverviewPage() {
   return (
@@ -27,12 +28,7 @@ export default function OverviewPage() {
       <div className="mb-6">
         <SectionLabel>B2B — Installer Clients (full visibility)</SectionLabel>
         <div className="reveal-group grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <StatTile label="Installer CAC" value="—" hint="Not connected yet" tone="accent" />
-          <StatTile label="Installer LTV" value="—" hint="Not connected yet" tone="accent" />
-          <StatTile label="LTV : CAC ratio" value="—" hint="Not connected yet" />
-          <StatTile label="Monthly Churn Rate" value="—" hint="Not connected yet" />
-          <StatTile label="Active Installer Clients" value="—" hint="Not connected yet" />
-          <StatTile label="B2B Ad Spend" value="—" hint="Meta — not connected" />
+          <B2BOverviewStats />
         </div>
       </div>
 

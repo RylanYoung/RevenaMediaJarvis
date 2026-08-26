@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardHeader } from "@/components/ui/card";
 import { StatTile } from "@/components/ui/stat-tile";
+import { FormField, inputClass } from "@/components/ui/form-field";
 
 function currency(n: number) {
   if (!isFinite(n)) return "—";
@@ -112,71 +113,71 @@ export default function GrowthCalculatorPage() {
                 : "Default assumptions shown — connect Supabase and log pipeline leads to use real numbers"
             }
           />
-          <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2">
-            <Field label="Target Monthly Revenue (AUD)">
+          <div className="grid grid-cols-1 gap-5 p-6 sm:grid-cols-2">
+            <FormField label="Target Monthly Revenue (AUD)">
               <input
                 type="number"
                 value={targetRevenue}
                 onChange={(e) => setTargetRevenue(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+                className={inputClass}
               />
-            </Field>
-            <Field label="Avg. Deal Size (AUD)">
+            </FormField>
+            <FormField label="Avg. Deal Size (AUD)">
               <input
                 type="number"
                 value={avgDealSize}
                 onChange={(e) => setAvgDealSize(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+                className={inputClass}
               />
-            </Field>
-            <Field label="Lead → Called %">
+            </FormField>
+            <FormField label="Lead → Called %">
               <input
                 type="number"
                 value={leadToCalled}
                 onChange={(e) => setLeadToCalled(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+                className={inputClass}
               />
-            </Field>
-            <Field label="Called → Booked %">
+            </FormField>
+            <FormField label="Called → Booked %">
               <input
                 type="number"
                 value={calledToBooked}
                 onChange={(e) => setCalledToBooked(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+                className={inputClass}
               />
-            </Field>
-            <Field label="Booked → Closed %">
+            </FormField>
+            <FormField label="Booked → Closed %">
               <input
                 type="number"
                 value={bookedToClosed}
                 onChange={(e) => setBookedToClosed(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+                className={inputClass}
               />
-            </Field>
-            <Field label="Cost per Lead (AUD)">
+            </FormField>
+            <FormField label="Cost per Lead (AUD)">
               <input
                 type="number"
                 value={costPerLead}
                 onChange={(e) => setCostPerLead(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+                className={inputClass}
               />
-            </Field>
-            <Field label="Avg. Monthly Value per Client (AUD)">
+            </FormField>
+            <FormField label="Avg. Monthly Value per Client (AUD)">
               <input
                 type="number"
                 value={avgMonthlyValue}
                 onChange={(e) => setAvgMonthlyValue(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+                className={inputClass}
               />
-            </Field>
-            <Field label="Avg. Client Lifetime (months)">
+            </FormField>
+            <FormField label="Avg. Client Lifetime (months)">
               <input
                 type="number"
                 value={clientLifetimeMonths}
                 onChange={(e) => setClientLifetimeMonths(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+                className={inputClass}
               />
-            </Field>
+            </FormField>
           </div>
         </Card>
 
@@ -210,14 +211,5 @@ export default function GrowthCalculatorPage() {
         </Card>
       </div>
     </>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-medium text-muted">{label}</span>
-      {children}
-    </label>
   );
 }
