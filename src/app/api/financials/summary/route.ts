@@ -1,0 +1,68 @@
+import { NextResponse } from "next/server";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const days = Math.min(Math.max(Number(searchParams.get("days")) || 30, 1), 365);
+
+    const dateTo = new Date();
+    const dateFrom = new Date(dateTo);
+    dateFrom.setDate(dateFrom.getDate() - (days - 1));
+    const dateFromStr = dateFrom.toISOString().slice(0, 10);
+    const dateToStr = dateTo.toISOString().slice(0, 10);
+
+    const supabase = getSupabaseAdmin();
+
+    const [leadsRes, revenueRes, adSpendRes, fixedCostsRes] = await Promise.all([
+      supabase.from("b2c_leads").select("revenue").gte("lead_created_at", dateFromStr),
+      supabase.from("revenue_entries").select("amount").gte("entry_date", dateFromStr).lte("entry_date", dateToStr),
+      supabase.from("ad_spend").select("funnel, cost").gte("spend_date", dateFromStr).lte("spend_date", dateToStr),
+      supabase.from("fixed_costs").select("monthly_amount"),
+    ]);
+
+    for (const res of [leadsRes, revenueRes, adSpendRes, fixedCostsRes]) {
+      if (res.error) throw new Error(res.error.message);
+    }
+
+    const leadDistroRevenue = (leadsRes.data ?? []).reduce((sum, r) => sum + Number(r.revenue || 0), 0);
+    const manualRevenue = (revenueRes.data ?? []).reduce((sum, r) => sum + Number(r.amount || 0), 0);
+    const totalRevenue = leadDistroRevenue + manualRevenue;
+
+    const b2cSpend = (adSpendRes.data ?? [])
+      .filter((r) => r.funnel === "b2c")
+      .reduce((sum, r) => sum + Number(r.cost || 0), 0);
+    const b2bSpend = (adSpendRes.data ?? [])
+      .filter((r) => r.funnel === "b2b")
+      .reduce((sum, r) => sum + Number(r.cost || 0), 0);
+
+    // Fixed costs are monthly figures; prorate them across the selected window.
+    const fixedCostsMonthly = (fixedCostsRes.data ?? []).reduce((sum, r) => sum + Number(r.monthly_amount || 0), 0);
+    const fixedCostsProrated = fixedCostsMonthly * (days / 30);
+
+    const totalExpenses = b2cSpend + b2bSpend + fixedCostsProrated;
+    const profit = totalRevenue - totalExpenses;
+    const marginPct = totalRevenue > 0 ? (profit / totalRevenue) * 100 : null;
+
+    return NextResponse.json({
+      ok: true,
+      dateFrom: dateFromStr,
+      dateTo: dateToStr,
+      leadDistroRevenue,
+      manualRevenue,
+      totalRevenue,
+      b2cSpend,
+      b2bSpend,
+      fixedCostsMonthly,
+      fixedCostsProrated,
+      totalExpenses,
+      profit,
+      marginPct,
+    });
+  } catch (err) {
+    return NextResponse.json(
+      { ok: false, error: err instanceof Error ? err.message : "Unknown error" },
+      { status: 500 }
+    );
+  }
+}

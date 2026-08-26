@@ -4,7 +4,21 @@ import { useState } from "react";
 
 type SyncState = "idle" | "loading" | "success" | "error";
 
-export function LeadDistroSync() {
+export function SyncButton({
+  endpoint,
+  body,
+  resultField,
+  unitLabel,
+  label = "Sync now",
+}: {
+  endpoint: string;
+  body?: Record<string, unknown>;
+  /** Key to read the synced count from in the JSON response, e.g. "leadsSynced". */
+  resultField: string;
+  /** Singular unit name, e.g. "lead" or "day" — pluralized automatically. */
+  unitLabel: string;
+  label?: string;
+}) {
   const [state, setState] = useState<SyncState>("idle");
   const [message, setMessage] = useState<string | null>(null);
 
@@ -12,17 +26,18 @@ export function LeadDistroSync() {
     setState("loading");
     setMessage(null);
     try {
-      const res = await fetch("/api/sync/lead-distro", {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ days: 1 }),
+        body: JSON.stringify(body ?? {}),
       });
       const json = await res.json();
       if (!res.ok || !json.ok) {
         throw new Error(json.error || "Sync failed");
       }
       setState("success");
-      setMessage(`${json.leadsSynced} lead${json.leadsSynced === 1 ? "" : "s"} synced`);
+      const count = Number(json[resultField] ?? 0);
+      setMessage(`${count} ${unitLabel}${count === 1 ? "" : "s"} synced`);
     } catch (err) {
       setState("error");
       setMessage(err instanceof Error ? err.message : "Sync failed");
@@ -45,7 +60,7 @@ export function LeadDistroSync() {
         {state === "loading" && (
           <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />
         )}
-        {state === "loading" ? "Syncing…" : "Sync now"}
+        {state === "loading" ? "Syncing…" : label}
       </button>
     </div>
   );

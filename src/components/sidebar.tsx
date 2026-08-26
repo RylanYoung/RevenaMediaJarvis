@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Logo } from "@/components/logo";
 
 const NAV_ITEMS = [
   { href: "/", label: "Overview" },
@@ -20,14 +20,7 @@ export function Sidebar() {
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-surface/60 px-4 py-6">
       <div className="mb-8 px-2">
-        <Image
-          src="/revena-logo.png"
-          alt="Revena Media"
-          width={1398}
-          height={600}
-          priority
-          className="h-9 w-auto"
-        />
+        <Logo className="h-9 w-auto" />
         <p className="mt-2 text-xs text-muted">Business Dashboard</p>
       </div>
 

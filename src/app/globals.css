@@ -68,6 +68,18 @@ body {
   box-shadow: var(--card-shadow);
 }
 
+/* Theme-swapped logo — see components/logo.tsx. Default (dark) shows
+   the white wordmark; light theme swaps to the black wordmark. */
+.logo-light {
+  display: none;
+}
+:root[data-theme="light"] .logo-light {
+  display: block;
+}
+:root[data-theme="light"] .logo-dark {
+  display: none;
+}
+
 @keyframes reveal {
   from {
     opacity: 0;

@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { login } from "./actions";
+import { Logo } from "@/components/logo";
 
 export default async function LoginPage({
   searchParams,
@@ -10,8 +10,8 @@ export default async function LoginPage({
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm rounded-xl border border-border bg-surface p-6 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.6)]">
-        <Image src="/revena-logo.png" alt="Revena Media" width={1398} height={600} priority className="h-8 w-auto" />
+      <div className="card-shadow w-full max-w-sm rounded-xl border border-border bg-surface p-6">
+        <Logo className="h-8 w-auto" />
         <p className="mt-2 text-xs text-muted">Private dashboard — sign in to continue.</p>
 
         <form action={login} className="mt-6 flex flex-col gap-3">

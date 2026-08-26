@@ -1,7 +1,7 @@
--- Revena Media Dashboard — B2C sync tables
+-- Revena Media Dashboard — schema
 -- Run this once in the Supabase SQL editor (Project -> SQL Editor -> New query)
--- after creating the project. Modeled directly on the real Lead Distro
--- get_leads / get_campaign_performance response shapes.
+-- after creating the project. b2c_leads / ad_spend are modeled directly on
+-- the real Lead Distro get_leads / get_campaign_performance response shapes.
 
 create table if not exists b2c_leads (
   id uuid primary key,                 -- Lead Distro's own lead id (keeps re-sync idempotent)
@@ -12,7 +12,7 @@ create table if not exists b2c_leads (
   state text,                          -- AU state, for geo breakdown later
   zip_code text,
   cost numeric(10, 2) default 0,       -- what Revena paid for this lead
-  revenue numeric(10, 2) default 0,
+  revenue numeric(10, 2) default 0,    -- what the installer buyer paid for it
   price numeric(10, 2) default 0,
   quality_score numeric,
   tags text[] default '{}',
@@ -25,10 +25,13 @@ create table if not exists b2c_leads (
 create index if not exists b2c_leads_campaign_id_idx on b2c_leads (campaign_id);
 create index if not exists b2c_leads_lead_created_at_idx on b2c_leads (lead_created_at);
 
+-- campaign_id is `text`, not `uuid` — Lead Distro campaigns are UUIDs but
+-- Meta ad account/campaign ids are plain numeric strings, and this table
+-- holds both (split by `funnel`).
 create table if not exists ad_spend (
   id bigint generated always as identity primary key,
   funnel text not null check (funnel in ('b2c', 'b2b')),
-  campaign_id uuid not null,
+  campaign_id text not null,
   campaign_name text,
   spend_date date not null,            -- the single day this row covers
   total_leads integer default 0,
@@ -43,3 +46,36 @@ create table if not exists ad_spend (
 );
 
 create index if not exists ad_spend_funnel_date_idx on ad_spend (funnel, spend_date);
+
+-- B2B installer sales pipeline (the Pipeline Board on B2B Pipeline).
+create table if not exists b2b_leads (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  deal_value numeric(10, 2),
+  stage text not null default 'lead' check (stage in ('lead', 'called', 'booked', 'closed', 'lost')),
+  source text not null default 'manual' check (source in ('manual', 'meta', 'lead-distro')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  closed_at timestamptz    -- set when stage moves to 'closed'; feeds the Growth Calculator's real avg deal size
+);
+
+create index if not exists b2b_leads_stage_idx on b2b_leads (stage);
+
+-- Fixed monthly software/overhead costs (Financials page).
+create table if not exists fixed_costs (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  monthly_amount numeric(10, 2) not null,
+  created_at timestamptz not null default now()
+);
+
+-- Manual revenue entries (Financials page) — the fallback when Lead
+-- Distro-derived revenue (sum of b2c_leads.revenue) isn't available or
+-- doesn't cover everything, e.g. direct Stripe invoices.
+create table if not exists revenue_entries (
+  id uuid primary key default gen_random_uuid(),
+  amount numeric(10, 2) not null,
+  description text,
+  entry_date date not null default current_date,
+  created_at timestamptz not null default now()
+);
