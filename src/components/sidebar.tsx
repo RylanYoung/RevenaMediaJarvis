@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/b2b-pipeline", label: "B2B Pipeline" },
   { href: "/financials", label: "Financials" },
   { href: "/growth-calculator", label: "Growth Calculator" },
+  { href: "/settings", label: "Settings" },
 ];
 
 export function Sidebar() {
@@ -26,7 +27,7 @@ export function Sidebar() {
           priority
           className="h-9 w-auto"
         />
-        <p className="mt-2 text-xs text-muted">CAC / LTV Dashboard</p>
+        <p className="mt-2 text-xs text-muted">Business Dashboard</p>
       </div>
 
       <nav className="flex flex-1 flex-col gap-1">

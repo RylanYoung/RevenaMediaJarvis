@@ -3,6 +3,7 @@ import { SectionLabel } from "@/components/ui/section-label";
 import { StatTile } from "@/components/ui/stat-tile";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SyncStatus } from "@/components/ui/sync-status";
 import { OverviewHero } from "@/components/overview-hero";
 
 export default function OverviewPage() {
@@ -15,17 +16,17 @@ export default function OverviewPage() {
 
       <OverviewHero />
 
-      <div className="mb-8">
+      <div className="mb-6">
         <SectionLabel>B2C — SolarSavings.au (light visibility)</SectionLabel>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="reveal-group grid grid-cols-1 gap-4 sm:grid-cols-2">
           <StatTile label="Cost per Lead (CPL)" value="—" hint="Lead Distro — not connected" />
           <StatTile label="Leads Sent" value="—" hint="Lead Distro — not connected" />
         </div>
       </div>
 
-      <div className="mb-8">
+      <div className="mb-6">
         <SectionLabel>B2B — Installer Clients (full visibility)</SectionLabel>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="reveal-group grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatTile label="Installer CAC" value="—" hint="Not connected yet" tone="accent" />
           <StatTile label="Installer LTV" value="—" hint="Not connected yet" tone="accent" />
           <StatTile label="LTV : CAC ratio" value="—" hint="Not connected yet" />
@@ -35,11 +36,12 @@ export default function OverviewPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="reveal-group grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader
             title="Revenue vs. Ad Spend vs. Margin"
             subtitle="Monthly trend — Financials"
+            action={<SyncStatus />}
           />
           <div className="p-5">
             <EmptyState
@@ -51,12 +53,13 @@ export default function OverviewPage() {
         <Card>
           <CardHeader
             title="B2B Pipeline Snapshot"
-            subtitle="Leads → Calls → Qualified → Closed"
+            subtitle="Leads → Qualified Call → Closed"
+            action={<SyncStatus />}
           />
           <div className="p-5">
             <EmptyState
               title="No pipeline entries yet"
-              description="B2B pipeline is logged manually — add entries on the B2B Pipeline page."
+              description="Add or move leads on the B2B Pipeline page to see them here."
             />
           </div>
         </Card>

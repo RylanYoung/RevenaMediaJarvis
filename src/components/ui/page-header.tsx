@@ -6,7 +6,7 @@ export function PageHeader({
   description: string;
 }) {
   return (
-    <div className="mb-6">
+    <div className="reveal mb-6">
       <h1 className="text-xl font-semibold text-foreground">{title}</h1>
       <p className="mt-1 text-sm text-muted">{description}</p>
     </div>

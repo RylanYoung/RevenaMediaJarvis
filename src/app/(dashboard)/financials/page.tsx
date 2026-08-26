@@ -3,6 +3,7 @@ import { SectionLabel } from "@/components/ui/section-label";
 import { StatTile } from "@/components/ui/stat-tile";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SyncStatus } from "@/components/ui/sync-status";
 
 export default function FinancialsPage() {
   return (
@@ -12,22 +13,26 @@ export default function FinancialsPage() {
         description="Revenue, ad spend, fixed costs, margin, and profit — the true all-in picture of the business."
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="reveal-group grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile label="Total Revenue" value="—" hint="Installer payments (Stripe)" />
         <StatTile label="Total Expenses" value="—" hint="Ad spend + fixed costs" />
-        <StatTile label="Net Profit" value="—" hint="Revenue − Expenses" />
-        <StatTile label="All-in Margin %" value="—" hint="Net Profit ÷ Revenue" />
+        <StatTile label="Net Profit" value="—" hint="Revenue − Expenses" tone="accent" />
+        <StatTile label="All-in Margin %" value="—" hint="Net Profit ÷ Revenue" tone="accent" />
       </div>
 
       <div className="mt-8">
         <SectionLabel>Monthly Revenue vs. Expenses</SectionLabel>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="reveal-group grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Card>
-            <CardHeader title="Revenue" subtitle="Installer client payments — sourced from Stripe" />
+            <CardHeader
+              title="Revenue"
+              subtitle="Installer client payments — sourced from Stripe"
+              action={<SyncStatus />}
+            />
             <div className="p-5">
               <EmptyState
                 title="No revenue data yet"
-                description="Stripe isn't wired up yet. Revenue will show per-client and totaled here."
+                description="Add your Stripe key in Settings. Revenue will show per-client and totaled here."
               />
             </div>
           </Card>
@@ -54,7 +59,7 @@ export default function FinancialsPage() {
 
       <div className="mt-8">
         <SectionLabel>Ad Spend Efficiency</SectionLabel>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="reveal-group grid grid-cols-1 gap-4 sm:grid-cols-3">
           <StatTile label="B2C Ad Spend : Revenue" value="—" hint="B2C spend ÷ total revenue" />
           <StatTile label="B2B Ad Spend : Revenue" value="—" hint="B2B spend ÷ total revenue" />
           <StatTile label="Total Ad Spend : Revenue" value="—" hint="Combined, for reference only" />
@@ -109,7 +114,7 @@ export default function FinancialsPage() {
 
       <div className="mt-8">
         <Card>
-          <CardHeader title="Margin Trend" subtitle="Revenue vs. total expenses over time" />
+          <CardHeader title="Margin Trend" subtitle="Revenue vs. total expenses over time" action={<SyncStatus />} />
           <div className="p-5">
             <EmptyState
               title="No data yet"

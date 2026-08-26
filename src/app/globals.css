@@ -7,8 +7,9 @@
   --border: #1c2740;
   --foreground: #e7ecf5;
   --muted: #8592a8;
-  --accent: #22d3ee;
-  --accent-blue: #3b82f6;
+  /* Sampled directly from the Revena Media logo mark. */
+  --accent: #1b18ff;
+  --accent-light: #546ffe;
   --positive: #34d399;
   --negative: #f87171;
 }
@@ -21,7 +22,7 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
-  --color-accent-blue: var(--accent-blue);
+  --color-accent-light: var(--accent-light);
   --color-positive: var(--positive);
   --color-negative: var(--negative);
   --font-sans: var(--font-geist-sans);
@@ -36,4 +37,38 @@ body {
 
 ::selection {
   background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    animation: reveal 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* Staggers direct children of anything with .reveal-group by render order. */
+  .reveal-group > * {
+    animation: reveal 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .reveal-group > *:nth-child(1) { animation-delay: 0ms; }
+  .reveal-group > *:nth-child(2) { animation-delay: 45ms; }
+  .reveal-group > *:nth-child(3) { animation-delay: 90ms; }
+  .reveal-group > *:nth-child(4) { animation-delay: 135ms; }
+  .reveal-group > *:nth-child(5) { animation-delay: 180ms; }
+  .reveal-group > *:nth-child(6) { animation-delay: 225ms; }
+  .reveal-group > *:nth-child(7) { animation-delay: 270ms; }
+  .reveal-group > *:nth-child(8) { animation-delay: 315ms; }
+  .reveal-group > *:nth-child(9) { animation-delay: 360ms; }
+  .reveal-group > *:nth-child(10) { animation-delay: 405ms; }
+  .reveal-group > *:nth-child(11) { animation-delay: 450ms; }
+  .reveal-group > *:nth-child(12) { animation-delay: 495ms; }
 }
