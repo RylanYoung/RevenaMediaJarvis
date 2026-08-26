@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { FinancialsSummary, ExpensesBreakdown, RevenueBreakdown } from "@/components/financials-summary";
 import { RevenuePanel } from "@/components/revenue-panel";
 import { FixedCostsPanel } from "@/components/fixed-costs-panel";
+import { AdSpendPanel } from "@/components/ad-spend-panel";
 import { SyncButton } from "@/components/sync-button";
 
 export default function FinancialsPage() {
@@ -44,6 +45,16 @@ export default function FinancialsPage() {
             <ExpensesBreakdown />
           </Card>
         </div>
+      </div>
+
+      <div className="mt-8">
+        <Card>
+          <CardHeader
+            title="Manual Ad Spend"
+            subtitle="Log spend by hand for whatever isn't synced yet — same totals everywhere else once added"
+          />
+          <AdSpendPanel />
+        </Card>
       </div>
 
       <div className="mt-8">

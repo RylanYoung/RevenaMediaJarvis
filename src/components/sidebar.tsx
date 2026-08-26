@@ -18,13 +18,13 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-surface/60 px-4 py-6">
+    <aside className="flex h-screen w-64 shrink-0 flex-col overflow-y-auto border-r border-border bg-surface/60 px-4 py-6">
       <div className="mb-8 px-2">
         <Logo className="h-9 w-auto" />
         <p className="mt-2 text-xs text-muted">Business Dashboard</p>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1">
+      <nav className="flex flex-1 flex-col gap-1.5">
         {NAV_ITEMS.map((item) => {
           const active =
             item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -32,9 +32,9 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`rounded-md px-3 py-2 text-sm transition-colors ${
+              className={`rounded-lg px-4 py-3 text-[15px] font-medium transition-colors ${
                 active
-                  ? "bg-surface-hover text-foreground border-l-2 border-accent -ml-px pl-[11px]"
+                  ? "bg-surface-hover text-foreground border-l-[3px] border-accent -ml-px pl-[13px]"
                   : "text-muted hover:bg-surface-hover hover:text-foreground"
               }`}
             >
