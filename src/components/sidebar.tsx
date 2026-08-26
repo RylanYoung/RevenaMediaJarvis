@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -17,10 +18,15 @@ export function Sidebar() {
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-surface/60 px-4 py-6">
       <div className="mb-8 px-2">
-        <p className="text-sm font-semibold tracking-tight text-foreground">
-          Revena Media
-        </p>
-        <p className="text-xs text-muted">CAC / LTV Dashboard</p>
+        <Image
+          src="/revena-logo.png"
+          alt="Revena Media"
+          width={1398}
+          height={600}
+          priority
+          className="h-9 w-auto"
+        />
+        <p className="mt-2 text-xs text-muted">CAC / LTV Dashboard</p>
       </div>
 
       <nav className="flex flex-1 flex-col gap-1">

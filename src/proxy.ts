@@ -23,5 +23,10 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!login|_next/static|_next/image|favicon.ico).*)"],
+  // Static assets (logo, favicon, etc.) stay public — the Next.js image
+  // optimizer fetches them internally without the auth cookie, and they
+  // aren't sensitive, unlike everything else in the app.
+  matcher: [
+    "/((?!login|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|ico|webp|gif)$).*)",
+  ],
 };
