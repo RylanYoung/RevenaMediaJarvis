@@ -4,6 +4,16 @@ import type { NextRequest } from "next/server";
 const AUTH_COOKIE = "revena_auth";
 
 export function proxy(request: NextRequest) {
+  // Vercel Cron hits /api/sync/* with its own bearer secret, not our
+  // login cookie — let those through on their own auth, checked again
+  // (defense in depth) inside each route's GET handler.
+  if (request.nextUrl.pathname.startsWith("/api/sync/")) {
+    const auth = request.headers.get("authorization");
+    if (process.env.CRON_SECRET && auth === `Bearer ${process.env.CRON_SECRET}`) {
+      return NextResponse.next();
+    }
+  }
+
   const username = process.env.DASHBOARD_USERNAME;
   const password = process.env.DASHBOARD_PASSWORD;
 

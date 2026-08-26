@@ -20,13 +20,18 @@ export async function login(formData: FormData) {
     redirect(`/login?error=1&from=${encodeURIComponent(redirectTarget)}`);
   }
 
+  const remember = formData.get("remember") === "on";
+
   const cookieStore = await cookies();
   cookieStore.set("revena_auth", `${expectedUsername}:${expectedPassword}`, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 30,
+    // Checked: persists 30 days on this device. Unchecked: a session
+    // cookie, cleared the moment the browser closes — for logging in
+    // on a device that isn't yours.
+    ...(remember ? { maxAge: 60 * 60 * 24 * 30 } : {}),
   });
 
   redirect(redirectTarget);
