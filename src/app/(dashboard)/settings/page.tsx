@@ -27,9 +27,12 @@ export default function SettingsPage() {
     },
     {
       name: "Stripe",
-      description: "Installer client payments — the source of truth for Revenue.",
+      description: "Installer client payments — the source of truth for Revenue. Syncs instantly via webhook, plus a daily cron backstop.",
       poweredSections: "Overview, Financials",
-      envVars: [{ key: "STRIPE_SECRET_KEY", connected: !!process.env.STRIPE_SECRET_KEY }],
+      envVars: [
+        { key: "STRIPE_SECRET_KEY", connected: !!process.env.STRIPE_SECRET_KEY },
+        { key: "STRIPE_WEBHOOK_SECRET", connected: !!process.env.STRIPE_WEBHOOK_SECRET },
+      ],
     },
     {
       name: "Supabase",

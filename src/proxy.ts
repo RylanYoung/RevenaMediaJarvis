@@ -14,6 +14,12 @@ export function proxy(request: NextRequest) {
     }
   }
 
+  // Stripe's servers hit /api/webhooks/* directly — no login cookie either.
+  // Real auth is the Stripe-Signature check inside the route itself.
+  if (request.nextUrl.pathname.startsWith("/api/webhooks/")) {
+    return NextResponse.next();
+  }
+
   const username = process.env.DASHBOARD_USERNAME;
   const password = process.env.DASHBOARD_PASSWORD;
 
