@@ -20,26 +20,26 @@ function round(n: number) {
 
 export default function GrowthCalculatorPage() {
   const [targetRevenue, setTargetRevenue] = useState(50000);
-  const [avgDealValue, setAvgDealValue] = useState(2000);
-  const [leadToCalled, setLeadToCalled] = useState(40);
-  const [calledToBooked, setCalledToBooked] = useState(50);
-  const [bookedToClosed, setBookedToClosed] = useState(30);
+  const [avgDealSize, setAvgDealSize] = useState(2000);
+  const [leadToCall, setLeadToCall] = useState(40);
+  const [callToQualified, setCallToQualified] = useState(50);
+  const [qualifiedToClosed, setQualifiedToClosed] = useState(30);
   const [costPerLead, setCostPerLead] = useState(35);
 
   const result = useMemo(() => {
-    const deals = targetRevenue / (avgDealValue || 1);
-    const booked = deals / ((bookedToClosed || 0.0001) / 100);
-    const called = booked / ((calledToBooked || 0.0001) / 100);
-    const leads = called / ((leadToCalled || 0.0001) / 100);
+    const closed = targetRevenue / (avgDealSize || 1);
+    const qualified = closed / ((qualifiedToClosed || 0.0001) / 100);
+    const calls = qualified / ((callToQualified || 0.0001) / 100);
+    const leads = calls / ((leadToCall || 0.0001) / 100);
     const spend = leads * costPerLead;
-    return { deals, booked, called, leads, spend };
-  }, [targetRevenue, avgDealValue, leadToCalled, calledToBooked, bookedToClosed, costPerLead]);
+    return { closed, qualified, calls, leads, spend };
+  }, [targetRevenue, avgDealSize, leadToCall, callToQualified, qualifiedToClosed, costPerLead]);
 
   return (
     <>
       <PageHeader
         title="Growth Calculator"
-        description="Reverse-engineer a target monthly revenue into the deals, calls, and leads needed — using real historical conversion rates once available."
+        description="B2B only — reverse-engineer a target monthly revenue into the pipeline (leads, calls, qualified, closed) needed, using real historical conversion rates once available."
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -54,35 +54,35 @@ export default function GrowthCalculatorPage() {
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
               />
             </Field>
-            <Field label="Avg. Deal Value (AUD)">
+            <Field label="Avg. Deal Size (AUD)">
               <input
                 type="number"
-                value={avgDealValue}
-                onChange={(e) => setAvgDealValue(Number(e.target.value))}
+                value={avgDealSize}
+                onChange={(e) => setAvgDealSize(Number(e.target.value))}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
               />
             </Field>
-            <Field label="Lead → Called %">
+            <Field label="Lead → Call %">
               <input
                 type="number"
-                value={leadToCalled}
-                onChange={(e) => setLeadToCalled(Number(e.target.value))}
+                value={leadToCall}
+                onChange={(e) => setLeadToCall(Number(e.target.value))}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
               />
             </Field>
-            <Field label="Called → Booked %">
+            <Field label="Call → Qualified %">
               <input
                 type="number"
-                value={calledToBooked}
-                onChange={(e) => setCalledToBooked(Number(e.target.value))}
+                value={callToQualified}
+                onChange={(e) => setCallToQualified(Number(e.target.value))}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
               />
             </Field>
-            <Field label="Booked → Closed %">
+            <Field label="Qualified → Closed %">
               <input
                 type="number"
-                value={bookedToClosed}
-                onChange={(e) => setBookedToClosed(Number(e.target.value))}
+                value={qualifiedToClosed}
+                onChange={(e) => setQualifiedToClosed(Number(e.target.value))}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
               />
             </Field>
@@ -100,17 +100,17 @@ export default function GrowthCalculatorPage() {
         <Card>
           <CardHeader title="What it takes" subtitle="Backwards from your revenue target" />
           <div className="grid grid-cols-2 gap-4 p-5">
-            <StatTile label="Deals needed" value={`${round(result.deals)}`} />
-            <StatTile label="Booked calls needed" value={`${round(result.booked)}`} />
-            <StatTile label="Calls needed" value={`${round(result.called)}`} />
+            <StatTile label="Closed deals needed" value={`${round(result.closed)}`} />
+            <StatTile label="Qualified needed" value={`${round(result.qualified)}`} />
+            <StatTile label="Calls needed" value={`${round(result.calls)}`} />
             <StatTile label="Leads needed" value={`${round(result.leads)}`} />
           </div>
           <div className="px-5 pb-5">
             <StatTile
-              label="B2C Ad Spend Required"
+              label="B2B Ad Spend Required"
               value={currency(result.spend)}
               hint="Leads needed × cost per lead"
-              tone="positive"
+              tone="accent"
             />
           </div>
         </Card>

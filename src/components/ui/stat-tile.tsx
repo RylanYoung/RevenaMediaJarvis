@@ -9,14 +9,16 @@ export function StatTile({
   label: string;
   value: string;
   hint?: string;
-  tone?: "neutral" | "positive" | "negative";
+  tone?: "neutral" | "accent" | "positive" | "negative";
 }) {
   const toneClass =
     tone === "positive"
       ? "text-positive"
       : tone === "negative"
         ? "text-negative"
-        : "text-accent";
+        : tone === "accent"
+          ? "text-accent"
+          : "text-foreground";
 
   return (
     <Card className="px-5 py-4">
