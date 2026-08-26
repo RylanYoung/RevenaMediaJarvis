@@ -3,6 +3,7 @@ import { SectionLabel } from "@/components/ui/section-label";
 import { StatTile } from "@/components/ui/stat-tile";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { OverviewHero } from "@/components/overview-hero";
 
 export default function OverviewPage() {
   return (
@@ -12,11 +13,13 @@ export default function OverviewPage() {
         description="B2C and B2B are tracked completely separately — no shared or blended ad spend numbers."
       />
 
+      <OverviewHero />
+
       <div className="mb-8">
         <SectionLabel>B2C — SolarSavings.au (light visibility)</SectionLabel>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <StatTile label="Cost per Lead (CPL)" value="—" hint="Lead Distro — not connected" />
-          <StatTile label="Leads Sent (this month)" value="—" hint="Lead Distro — not connected" />
+          <StatTile label="Leads Sent" value="—" hint="Lead Distro — not connected" />
         </div>
       </div>
 
@@ -29,16 +32,6 @@ export default function OverviewPage() {
           <StatTile label="Monthly Churn Rate" value="—" hint="Not connected yet" />
           <StatTile label="Active Installer Clients" value="—" hint="Not connected yet" />
           <StatTile label="B2B Ad Spend" value="—" hint="Meta — not connected" />
-        </div>
-      </div>
-
-      <div className="mb-8">
-        <SectionLabel>Business-wide</SectionLabel>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatTile label="Monthly Revenue" value="—" hint="Stripe — not connected" />
-          <StatTile label="Monthly Expenses" value="—" hint="Ad spend + fixed costs" />
-          <StatTile label="Net Profit" value="—" hint="Revenue − Expenses" />
-          <StatTile label="All-in Margin %" value="—" hint="Net Profit ÷ Revenue" />
         </div>
       </div>
 

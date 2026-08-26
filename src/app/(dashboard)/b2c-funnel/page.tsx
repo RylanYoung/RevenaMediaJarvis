@@ -13,8 +13,8 @@ export default function B2CFunnelPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile label="Cost per Lead (CPL)" value="—" hint="Lead Distro" />
-        <StatTile label="Leads Generated" value="—" hint="Lead Distro" />
-        <StatTile label="Leads Sent to Buyers" value="—" hint="Lead Distro" />
+        <StatTile label="Leads Sent" value="—" hint="Lead Distro" />
+        <StatTile label="Qualified Leads Accepted" value="—" hint="Lead Distro" />
         <StatTile label="B2C Ad Spend" value="—" hint="Lead Distro" />
       </div>
 
