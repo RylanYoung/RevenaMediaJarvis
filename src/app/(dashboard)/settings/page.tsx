@@ -9,9 +9,12 @@ export default function SettingsPage() {
   const integrations: Integration[] = [
     {
       name: "Lead Distro",
-      description: "B2C leads, campaign performance, and B2C ad spend.",
+      description: "B2C leads, campaign performance, and B2C ad spend — synced into Supabase via the button on B2C Funnel.",
       poweredSections: "B2C Funnel, Overview, Financials",
-      envVars: [{ key: "LEAD_DISTRO_API_KEY", connected: !!process.env.LEAD_DISTRO_API_KEY }],
+      envVars: [
+        { key: "LEAD_DISTRO_API_KEY", connected: !!process.env.LEAD_DISTRO_API_KEY },
+        { key: "LEAD_DISTRO_CAMPAIGN_ID", connected: !!process.env.LEAD_DISTRO_CAMPAIGN_ID },
+      ],
     },
     {
       name: "Meta Marketing API",
@@ -30,11 +33,12 @@ export default function SettingsPage() {
     },
     {
       name: "Supabase",
-      description: "Database for manual pipeline entries, fixed costs, and lead packages.",
-      poweredSections: "B2B Pipeline, Financials (persistence across sessions)",
+      description: "Database for synced B2C leads/ad spend, manual pipeline entries, fixed costs, and lead packages.",
+      poweredSections: "B2C Funnel sync, B2B Pipeline, Financials (persistence across sessions)",
       envVars: [
         { key: "SUPABASE_URL", connected: !!process.env.SUPABASE_URL },
         { key: "SUPABASE_ANON_KEY", connected: !!process.env.SUPABASE_ANON_KEY },
+        { key: "SUPABASE_SERVICE_ROLE_KEY", connected: !!process.env.SUPABASE_SERVICE_ROLE_KEY },
       ],
     },
     {

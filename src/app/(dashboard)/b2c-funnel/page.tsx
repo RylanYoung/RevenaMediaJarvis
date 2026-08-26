@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StatTile } from "@/components/ui/stat-tile";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { SyncStatus } from "@/components/ui/sync-status";
+import { LeadDistroSync } from "@/components/lead-distro-sync";
 
 export default function B2CFunnelPage() {
   return (
@@ -23,13 +23,13 @@ export default function B2CFunnelPage() {
         <Card>
           <CardHeader
             title="Campaign Performance"
-            subtitle="Per-campaign leads, spend, and CPL"
-            action={<SyncStatus />}
+            subtitle="Per-campaign leads, spend, and CPL — pulled from Lead Distro into Supabase"
+            action={<LeadDistroSync />}
           />
           <div className="p-5">
             <EmptyState
-              title="Lead Distro not connected"
-              description="Add LEAD_DISTRO_API_KEY in Settings to pull campaign performance here — real numbers, not estimates."
+              title="Not synced yet"
+              description="Hit Sync now once LEAD_DISTRO_API_KEY and Supabase are set up in Settings — this pulls real leads and campaign performance, not estimates."
             />
           </div>
         </Card>
