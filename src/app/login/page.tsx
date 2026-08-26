@@ -11,20 +11,29 @@ export default async function LoginPage({
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm rounded-xl border border-border bg-surface p-6 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.6)]">
         <p className="text-sm font-semibold text-foreground">Revena Media</p>
-        <p className="mt-0.5 text-xs text-muted">Private dashboard — enter password to continue.</p>
+        <p className="mt-0.5 text-xs text-muted">Private dashboard — sign in to continue.</p>
 
         <form action={login} className="mt-6 flex flex-col gap-3">
           <input type="hidden" name="from" value={from ?? "/"} />
           <input
+            type="text"
+            name="username"
+            placeholder="Username"
+            autoFocus
+            required
+            autoComplete="username"
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+          />
+          <input
             type="password"
             name="password"
             placeholder="Password"
-            autoFocus
             required
+            autoComplete="current-password"
             className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
           />
           {error && (
-            <p className="text-xs text-negative">Incorrect password. Try again.</p>
+            <p className="text-xs text-negative">Incorrect username or password. Try again.</p>
           )}
           <button
             type="submit"

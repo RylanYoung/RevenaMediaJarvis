@@ -4,15 +4,16 @@ import type { NextRequest } from "next/server";
 const AUTH_COOKIE = "revena_auth";
 
 export function proxy(request: NextRequest) {
+  const username = process.env.DASHBOARD_USERNAME;
   const password = process.env.DASHBOARD_PASSWORD;
 
-  // No password configured (e.g. local dev before you've set one) — don't lock yourself out.
-  if (!password) {
+  // No credentials configured (e.g. local dev before you've set them) — don't lock yourself out.
+  if (!username || !password) {
     return NextResponse.next();
   }
 
   const cookie = request.cookies.get(AUTH_COOKIE);
-  if (cookie?.value === password) {
+  if (cookie?.value === `${username}:${password}`) {
     return NextResponse.next();
   }
 
