@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV_ITEMS = [
   { href: "/", label: "Overview" },
@@ -51,7 +52,8 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-border pt-4 px-2">
-        <p className="text-[11px] text-muted">Private instance — data not shared.</p>
+        <ThemeToggle />
+        <p className="mt-3 text-[11px] text-muted">Private instance — data not shared.</p>
       </div>
     </aside>
   );

@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-:root {
+:root,
+:root[data-theme="dark"] {
   --background: #05070d;
   --surface: #0b1220;
   --surface-hover: #111b30;
@@ -12,6 +13,21 @@
   --accent-light: #546ffe;
   --positive: #34d399;
   --negative: #f87171;
+  --card-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.03) inset, 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+}
+
+:root[data-theme="light"] {
+  --background: #f5f6fa;
+  --surface: #ffffff;
+  --surface-hover: #eef0f5;
+  --border: #e1e4eb;
+  --foreground: #10131c;
+  --muted: #62697a;
+  --accent: #1b18ff;
+  --accent-light: #4a4dff;
+  --positive: #16a34a;
+  --negative: #dc2626;
+  --card-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.6) inset, 0 4px 16px -8px rgba(16, 19, 28, 0.12);
 }
 
 @theme inline {
@@ -35,8 +51,21 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  /* Makes the light/dark toggle feel smooth instead of an instant snap. */
+  * {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-duration: 0.2s;
+    transition-timing-function: ease;
+  }
+}
+
 ::selection {
   background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.card-shadow {
+  box-shadow: var(--card-shadow);
 }
 
 @keyframes reveal {

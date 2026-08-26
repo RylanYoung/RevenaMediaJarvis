@@ -18,26 +18,48 @@ function round(n: number) {
   return isFinite(n) ? Math.ceil(n) : 0;
 }
 
+// Numbers are kept as raw strings so the field mirrors exactly what's
+// typed (no forced Number() coercion on every keystroke, which is what
+// causes the field to snap to a stray leading "0"). Parsed only when
+// used in a calculation.
+function num(s: string) {
+  return s === "" ? 0 : Number(s);
+}
+
 export default function GrowthCalculatorPage() {
-  const [targetRevenue, setTargetRevenue] = useState(50000);
-  const [avgDealSize, setAvgDealSize] = useState(2000);
-  const [leadToQualified, setLeadToQualified] = useState(40);
-  const [qualifiedToClosed, setQualifiedToClosed] = useState(30);
-  const [costPerLead, setCostPerLead] = useState(35);
+  const [targetRevenue, setTargetRevenue] = useState("50000");
+  const [avgDealSize, setAvgDealSize] = useState("2000");
+  const [leadToQualified, setLeadToQualified] = useState("40");
+  const [qualifiedToClosed, setQualifiedToClosed] = useState("30");
+  const [costPerLead, setCostPerLead] = useState("35");
+  const [avgMonthlyValue, setAvgMonthlyValue] = useState("500");
+  const [clientLifetimeMonths, setClientLifetimeMonths] = useState("6");
 
   const result = useMemo(() => {
-    const closed = targetRevenue / (avgDealSize || 1);
-    const qualified = closed / ((qualifiedToClosed || 0.0001) / 100);
-    const leads = qualified / ((leadToQualified || 0.0001) / 100);
-    const spend = leads * costPerLead;
-    return { closed, qualified, leads, spend };
-  }, [targetRevenue, avgDealSize, leadToQualified, qualifiedToClosed, costPerLead]);
+    const revenue = num(targetRevenue);
+    const dealSize = num(avgDealSize);
+    const leadToQualifiedPct = num(leadToQualified);
+    const qualifiedToClosedPct = num(qualifiedToClosed);
+    const cpl = num(costPerLead);
+    const monthlyValue = num(avgMonthlyValue);
+    const lifetimeMonths = num(clientLifetimeMonths);
+
+    const closed = revenue / (dealSize || 1);
+    const qualified = closed / ((qualifiedToClosedPct || 0.0001) / 100);
+    const leads = qualified / ((leadToQualifiedPct || 0.0001) / 100);
+    const spend = leads * cpl;
+    const cac = spend / (closed || 0.0001);
+    const ltv = monthlyValue * lifetimeMonths;
+    const ltvToCac = ltv / (cac || 0.0001);
+
+    return { closed, qualified, leads, spend, cac, ltv, ltvToCac };
+  }, [targetRevenue, avgDealSize, leadToQualified, qualifiedToClosed, costPerLead, avgMonthlyValue, clientLifetimeMonths]);
 
   return (
     <>
       <PageHeader
         title="Growth Calculator"
-        description="B2B only — reverse-engineer a target monthly revenue into the leads and qualified calls needed, using real historical conversion rates once available."
+        description="B2B only — reverse-engineer a target monthly revenue into the leads, spend, CAC and LTV needed, using real historical conversion rates once available."
       />
 
       <div className="reveal-group grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -48,7 +70,7 @@ export default function GrowthCalculatorPage() {
               <input
                 type="number"
                 value={targetRevenue}
-                onChange={(e) => setTargetRevenue(Number(e.target.value))}
+                onChange={(e) => setTargetRevenue(e.target.value)}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
               />
             </Field>
@@ -56,7 +78,7 @@ export default function GrowthCalculatorPage() {
               <input
                 type="number"
                 value={avgDealSize}
-                onChange={(e) => setAvgDealSize(Number(e.target.value))}
+                onChange={(e) => setAvgDealSize(e.target.value)}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
               />
             </Field>
@@ -64,7 +86,7 @@ export default function GrowthCalculatorPage() {
               <input
                 type="number"
                 value={leadToQualified}
-                onChange={(e) => setLeadToQualified(Number(e.target.value))}
+                onChange={(e) => setLeadToQualified(e.target.value)}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
               />
             </Field>
@@ -72,7 +94,7 @@ export default function GrowthCalculatorPage() {
               <input
                 type="number"
                 value={qualifiedToClosed}
-                onChange={(e) => setQualifiedToClosed(Number(e.target.value))}
+                onChange={(e) => setQualifiedToClosed(e.target.value)}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
               />
             </Field>
@@ -80,7 +102,23 @@ export default function GrowthCalculatorPage() {
               <input
                 type="number"
                 value={costPerLead}
-                onChange={(e) => setCostPerLead(Number(e.target.value))}
+                onChange={(e) => setCostPerLead(e.target.value)}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+              />
+            </Field>
+            <Field label="Avg. Monthly Value per Client (AUD)">
+              <input
+                type="number"
+                value={avgMonthlyValue}
+                onChange={(e) => setAvgMonthlyValue(e.target.value)}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+              />
+            </Field>
+            <Field label="Avg. Client Lifetime (months)">
+              <input
+                type="number"
+                value={clientLifetimeMonths}
+                onChange={(e) => setClientLifetimeMonths(e.target.value)}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
               />
             </Field>
@@ -94,12 +132,21 @@ export default function GrowthCalculatorPage() {
             <StatTile label="Qualified calls needed" value={`${round(result.qualified)}`} />
             <StatTile label="Leads needed" value={`${round(result.leads)}`} />
           </div>
-          <div className="px-5 pb-5">
+          <div className="grid grid-cols-1 gap-4 px-5 pb-5 sm:grid-cols-2">
             <StatTile
               label="B2B Ad Spend Required"
               value={currency(result.spend)}
               hint="Leads needed × cost per lead"
-              tone="accent"
+            />
+            <StatTile label="CAC" value={currency(result.cac)} hint="Ad spend ÷ closed deals" tone="accent" />
+          </div>
+          <div className="grid grid-cols-1 gap-4 px-5 pb-5 sm:grid-cols-2">
+            <StatTile label="LTV" value={currency(result.ltv)} hint="Monthly value × lifetime" tone="accent" />
+            <StatTile
+              label="LTV : CAC"
+              value={isFinite(result.ltvToCac) ? `${result.ltvToCac.toFixed(1)}x` : "—"}
+              hint="Above 3x is healthy"
+              tone={result.ltvToCac >= 3 ? "positive" : "negative"}
             />
           </div>
         </Card>

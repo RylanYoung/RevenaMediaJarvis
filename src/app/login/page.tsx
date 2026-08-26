@@ -38,7 +38,7 @@ export default async function LoginPage({
           )}
           <button
             type="submit"
-            className="mt-1 rounded-md bg-accent px-3 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
+            className="mt-1 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
           >
             Unlock
           </button>

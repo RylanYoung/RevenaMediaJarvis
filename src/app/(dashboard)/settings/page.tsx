@@ -1,7 +1,9 @@
 import { PageHeader } from "@/components/ui/page-header";
 import { SectionLabel } from "@/components/ui/section-label";
+import { StatTile } from "@/components/ui/stat-tile";
 import { Card, CardHeader } from "@/components/ui/card";
 import { IntegrationsList, type Integration } from "@/components/integrations-list";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function SettingsPage() {
   const integrations: Integration[] = [
@@ -46,6 +48,10 @@ export default function SettingsPage() {
     },
   ];
 
+  const totalVars = integrations.flatMap((i) => i.envVars).length;
+  const connectedVars = integrations.flatMap((i) => i.envVars).filter((v) => v.connected).length;
+  const connectedIntegrations = integrations.filter((i) => i.envVars.every((v) => v.connected)).length;
+
   return (
     <>
       <PageHeader
@@ -53,7 +59,26 @@ export default function SettingsPage() {
         description="Connection status for every integration. Keys are never shown or stored here — only whether each one is set."
       />
 
-      <div className="mb-6">
+      <div className="reveal-group mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <StatTile
+          label="Integrations Connected"
+          value={`${connectedIntegrations} / ${integrations.length}`}
+        />
+        <StatTile label="Keys Set" value={`${connectedVars} / ${totalVars}`} />
+        <StatTile label="Theme" value="Dark / Light" hint="Toggle in sidebar or below" />
+      </div>
+
+      <div className="mb-8">
+        <SectionLabel>Preferences</SectionLabel>
+        <Card>
+          <CardHeader title="Appearance" subtitle="Switch between dark and light — applies everywhere, remembered on this device" />
+          <div className="p-5">
+            <ThemeToggle />
+          </div>
+        </Card>
+      </div>
+
+      <div className="mb-8">
         <SectionLabel>Integrations</SectionLabel>
         <IntegrationsList integrations={integrations} />
       </div>
