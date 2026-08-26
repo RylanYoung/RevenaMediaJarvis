@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { StatTile } from "@/components/ui/stat-tile";
+import { usePollingEffect } from "@/hooks/use-polling-effect";
 
 type Metrics = {
   totalLeads: number;
@@ -26,15 +27,16 @@ function useB2BMetrics() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  usePollingEffect(() => {
     fetch("/api/b2b/metrics?days=30")
       .then((res) => res.json())
       .then((json) => {
         if (!json.ok) throw new Error(json.error);
         setMetrics(json);
+        setError(null);
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"));
-  }, []);
+  });
 
   return { metrics, error };
 }

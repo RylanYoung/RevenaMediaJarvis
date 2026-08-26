@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { StatTile } from "@/components/ui/stat-tile";
+import { usePollingEffect } from "@/hooks/use-polling-effect";
 
 type Summary = {
   totalRevenue: number;
@@ -22,19 +23,25 @@ function currency(n: number) {
   return n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 }
 
+function fetchSummary(
+  setSummary: (s: Summary) => void,
+  setError: (e: string | null) => void
+) {
+  fetch("/api/financials/summary?days=30")
+    .then((res) => res.json())
+    .then((json) => {
+      if (!json.ok) throw new Error(json.error);
+      setSummary(json);
+      setError(null);
+    })
+    .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"));
+}
+
 export function FinancialsSummary() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch("/api/financials/summary?days=30")
-      .then((res) => res.json())
-      .then((json) => {
-        if (!json.ok) throw new Error(json.error);
-        setSummary(json);
-      })
-      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"));
-  }, []);
+  usePollingEffect(() => fetchSummary(setSummary, setError));
 
   const hint = summary ? `${summary.dateFrom} to ${summary.dateTo}` : error ? "Not connected" : "Loading…";
 
@@ -62,15 +69,7 @@ export function RevenueBreakdown() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch("/api/financials/summary?days=30")
-      .then((res) => res.json())
-      .then((json) => {
-        if (!json.ok) throw new Error(json.error);
-        setSummary(json);
-      })
-      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"));
-  }, []);
+  usePollingEffect(() => fetchSummary(setSummary, setError));
 
   const rows: Array<[string, number | null]> = summary
     ? [
@@ -100,15 +99,7 @@ export function ExpensesBreakdown() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch("/api/financials/summary?days=30")
-      .then((res) => res.json())
-      .then((json) => {
-        if (!json.ok) throw new Error(json.error);
-        setSummary(json);
-      })
-      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"));
-  }, []);
+  usePollingEffect(() => fetchSummary(setSummary, setError));
 
   const rows: Array<[string, number | null]> = summary
     ? [

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FormField, inputClass, primaryButtonClass } from "@/components/ui/form-field";
+import { usePollingEffect } from "@/hooks/use-polling-effect";
 
 type FixedCost = {
   id: string;
@@ -37,7 +38,7 @@ export function FixedCostsPanel() {
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"));
   }
 
-  useEffect(load, []);
+  usePollingEffect(load);
 
   async function addCost(e: React.FormEvent) {
     e.preventDefault();

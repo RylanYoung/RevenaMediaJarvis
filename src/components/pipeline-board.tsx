@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FormField, inputClass, primaryButtonClass } from "@/components/ui/form-field";
+import { usePollingEffect } from "@/hooks/use-polling-effect";
 
 type Stage = "lead" | "called" | "booked" | "closed" | "lost";
 
@@ -59,9 +60,7 @@ export function PipelineBoard() {
     }
   }
 
-  useEffect(() => {
-    load();
-  }, []);
+  usePollingEffect(load);
 
   const byStage = useMemo(() => {
     const grouped: Record<Stage, Lead[]> = { lead: [], called: [], booked: [], closed: [], lost: [] };
