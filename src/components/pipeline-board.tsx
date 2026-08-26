@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FormField, inputClass, primaryButtonClass } from "@/components/ui/form-field";
 import { usePollingEffect } from "@/hooks/use-polling-effect";
+import { notifyDataChanged } from "@/lib/sync-bus";
 
 type Stage = "lead" | "called" | "booked" | "closed" | "lost";
 
@@ -48,15 +49,23 @@ export function PipelineBoard() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverStage, setDragOverStage] = useState<Stage | null>(null);
 
+  // Guards against a slow poll response landing *after* a more recent local
+  // mutation (drag, add, remove) and clobbering it with stale server data —
+  // only the response from the most recently started load() gets applied.
+  const loadVersionRef = useRef(0);
+
   async function load() {
+    const version = ++loadVersionRef.current;
     setLoadError(null);
     try {
       const res = await fetch("/api/pipeline/leads");
       const json = await res.json();
       if (!res.ok || !json.ok) throw new Error(json.error || "Failed to load pipeline");
-      setLeads(json.leads);
+      if (version === loadVersionRef.current) setLeads(json.leads);
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : "Failed to load pipeline");
+      if (version === loadVersionRef.current) {
+        setLoadError(err instanceof Error ? err.message : "Failed to load pipeline");
+      }
     }
   }
 
@@ -94,9 +103,11 @@ export function PipelineBoard() {
       });
       const json = await res.json();
       if (!res.ok || !json.ok) throw new Error(json.error || "Failed to add lead");
+      loadVersionRef.current++; // outrun any poll response already in flight
       setLeads((prev) => [json.lead, ...(prev ?? [])]);
       setName("");
       setDealValue("");
+      notifyDataChanged();
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : "Failed to add lead");
     } finally {
@@ -105,6 +116,7 @@ export function PipelineBoard() {
   }
 
   async function move(id: string, stage: Stage) {
+    loadVersionRef.current++;
     setLeads((prev) => (prev ?? []).map((l) => (l.id === id ? { ...l, stage } : l)));
     try {
       const res = await fetch(`/api/pipeline/leads/${id}`, {
@@ -114,6 +126,7 @@ export function PipelineBoard() {
       });
       const json = await res.json();
       if (!res.ok || !json.ok) throw new Error(json.error || "Failed to move lead");
+      notifyDataChanged(); // CAC/conversion % elsewhere on the page update instantly
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : "Failed to move lead");
       load(); // resync on failure
@@ -121,11 +134,13 @@ export function PipelineBoard() {
   }
 
   async function remove(id: string) {
+    loadVersionRef.current++;
     setLeads((prev) => (prev ?? []).filter((l) => l.id !== id));
     try {
       const res = await fetch(`/api/pipeline/leads/${id}`, { method: "DELETE" });
       const json = await res.json();
       if (!res.ok || !json.ok) throw new Error(json.error || "Failed to remove lead");
+      notifyDataChanged();
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : "Failed to remove lead");
       load();

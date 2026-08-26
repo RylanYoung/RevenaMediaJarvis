@@ -4,6 +4,7 @@ import { useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FormField, inputClass, primaryButtonClass } from "@/components/ui/form-field";
 import { usePollingEffect } from "@/hooks/use-polling-effect";
+import { notifyDataChanged } from "@/lib/sync-bus";
 
 type FixedCost = {
   id: string;
@@ -35,6 +36,8 @@ export function FixedCostsPanel() {
         setCosts(json.costs);
         setError(null);
       })
+      // Keep showing the last good data on a transient poll failure —
+      // only surface the error state if we've never loaded successfully.
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"));
   }
 
@@ -55,6 +58,7 @@ export function FixedCostsPanel() {
       setCosts((prev) => [json.cost, ...(prev ?? [])]);
       setName("");
       setAmount("");
+      notifyDataChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add cost");
     } finally {
@@ -68,6 +72,7 @@ export function FixedCostsPanel() {
       const res = await fetch(`/api/financials/fixed-costs/${id}`, { method: "DELETE" });
       const json = await res.json();
       if (!res.ok || !json.ok) throw new Error(json.error);
+      notifyDataChanged();
     } catch {
       load();
     }
@@ -97,28 +102,25 @@ export function FixedCostsPanel() {
         </div>
       </form>
 
-      {costs === null && !error && (
+      {costs === null ? (
         <div className="p-6">
-          <EmptyState title="Loading…" description="Fetching fixed costs." />
+          {error ? (
+            <EmptyState
+              title="Not connected yet"
+              description="Add Supabase keys in Settings, then run supabase/schema.sql, to start logging fixed costs here."
+            />
+          ) : (
+            <EmptyState title="Loading…" description="Fetching fixed costs." />
+          )}
         </div>
-      )}
-      {error && (
-        <div className="p-6">
-          <EmptyState
-            title="Not connected yet"
-            description="Add Supabase keys in Settings, then run supabase/schema.sql, to start logging fixed costs here."
-          />
-        </div>
-      )}
-      {costs !== null && costs.length === 0 && !error && (
+      ) : costs.length === 0 ? (
         <div className="p-6">
           <EmptyState
             title="No fixed costs logged yet"
             description="Add recurring software costs (Lead Distro, GHL, Zapier, Stripe fees, etc.) to get an accurate margin."
           />
         </div>
-      )}
-      {costs !== null && costs.length > 0 && (
+      ) : (
         <>
           <div className="divide-y divide-border">
             {costs.map((cost) => (

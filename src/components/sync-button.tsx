@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { notifyDataChanged } from "@/lib/sync-bus";
 
 type SyncState = "idle" | "loading" | "success" | "error";
 
@@ -38,6 +39,7 @@ export function SyncButton({
       setState("success");
       const count = Number(json[resultField] ?? 0);
       setMessage(`${count} ${unitLabel}${count === 1 ? "" : "s"} synced`);
+      notifyDataChanged();
     } catch (err) {
       setState("error");
       setMessage(err instanceof Error ? err.message : "Sync failed");

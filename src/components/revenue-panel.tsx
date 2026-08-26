@@ -4,6 +4,7 @@ import { useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FormField, inputClass, primaryButtonClass } from "@/components/ui/form-field";
 import { usePollingEffect } from "@/hooks/use-polling-effect";
+import { notifyDataChanged } from "@/lib/sync-bus";
 
 type RevenueEntry = {
   id: string;
@@ -36,6 +37,8 @@ export function RevenuePanel() {
         setEntries(json.entries);
         setError(null);
       })
+      // Keep showing the last good data on a transient poll failure —
+      // only surface the error state if we've never loaded successfully.
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"));
   }
 
@@ -56,6 +59,7 @@ export function RevenuePanel() {
       setEntries((prev) => [json.entry, ...(prev ?? [])]);
       setAmount("");
       setDescription("");
+      notifyDataChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add entry");
     } finally {
@@ -69,6 +73,7 @@ export function RevenuePanel() {
       const res = await fetch(`/api/financials/revenue/${id}`, { method: "DELETE" });
       const json = await res.json();
       if (!res.ok || !json.ok) throw new Error(json.error);
+      notifyDataChanged();
     } catch {
       load();
     }
@@ -104,28 +109,25 @@ export function RevenuePanel() {
         </div>
       </form>
 
-      {entries === null && !error && (
+      {entries === null ? (
         <div className="p-6">
-          <EmptyState title="Loading…" description="Fetching revenue entries." />
+          {error ? (
+            <EmptyState
+              title="Not connected yet"
+              description="Add Supabase keys in Settings, then run supabase/schema.sql, to start logging revenue here."
+            />
+          ) : (
+            <EmptyState title="Loading…" description="Fetching revenue entries." />
+          )}
         </div>
-      )}
-      {error && (
-        <div className="p-6">
-          <EmptyState
-            title="Not connected yet"
-            description="Add Supabase keys in Settings, then run supabase/schema.sql, to start logging revenue here."
-          />
-        </div>
-      )}
-      {entries !== null && entries.length === 0 && !error && (
+      ) : entries.length === 0 ? (
         <div className="p-6">
           <EmptyState
             title="No manual entries yet"
             description="Stripe and Lead Distro revenue is added automatically once synced (see the breakdown above) — this form is for anything else, like cash or bank transfer payments."
           />
         </div>
-      )}
-      {entries !== null && entries.length > 0 && (
+      ) : (
         <div className="divide-y divide-border">
           {entries.map((entry) => (
             <div key={entry.id} className="flex items-center justify-between px-6 py-4 text-base">

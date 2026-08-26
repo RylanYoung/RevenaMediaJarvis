@@ -4,6 +4,7 @@ import { useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FormField, inputClass, primaryButtonClass } from "@/components/ui/form-field";
 import { usePollingEffect } from "@/hooks/use-polling-effect";
+import { notifyDataChanged } from "@/lib/sync-bus";
 
 type AdSpendEntry = {
   id: number;
@@ -38,6 +39,8 @@ export function AdSpendPanel() {
         setEntries(json.entries);
         setError(null);
       })
+      // Keep showing the last good data on a transient poll failure —
+      // only surface the error state if we've never loaded successfully.
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"));
   }
 
@@ -58,6 +61,9 @@ export function AdSpendPanel() {
       setEntries((prev) => [json.entry, ...(prev ?? [])]);
       setCost("");
       setLabel("");
+      // Instantly refreshes Total Expenses, the Expenses breakdown, and
+      // Ad Spend Efficiency tiles elsewhere on this page — no 15s wait.
+      notifyDataChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add entry");
     } finally {
@@ -71,6 +77,7 @@ export function AdSpendPanel() {
       const res = await fetch(`/api/financials/ad-spend/${id}`, { method: "DELETE" });
       const json = await res.json();
       if (!res.ok || !json.ok) throw new Error(json.error);
+      notifyDataChanged();
     } catch {
       load();
     }
@@ -116,28 +123,25 @@ export function AdSpendPanel() {
         </div>
       </form>
 
-      {entries === null && !error && (
+      {entries === null ? (
         <div className="p-6">
-          <EmptyState title="Loading…" description="Fetching manual ad spend entries." />
+          {error ? (
+            <EmptyState
+              title="Not connected yet"
+              description="Add Supabase keys in Settings to start logging ad spend here."
+            />
+          ) : (
+            <EmptyState title="Loading…" description="Fetching manual ad spend entries." />
+          )}
         </div>
-      )}
-      {error && (
-        <div className="p-6">
-          <EmptyState
-            title="Not connected yet"
-            description="Add Supabase keys in Settings to start logging ad spend here."
-          />
-        </div>
-      )}
-      {entries !== null && entries.length === 0 && !error && (
+      ) : entries.length === 0 ? (
         <div className="p-6">
           <EmptyState
             title="No manual ad spend yet"
             description="Log spend here while Lead Distro / Meta aren't synced yet — it counts the same as synced spend everywhere else."
           />
         </div>
-      )}
-      {entries !== null && entries.length > 0 && (
+      ) : (
         <div className="divide-y divide-border">
           {entries.map((entry) => (
             <div key={entry.id} className="flex items-center justify-between px-6 py-4 text-base">

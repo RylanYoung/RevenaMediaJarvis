@@ -45,7 +45,9 @@ function useB2BMetrics() {
 // ad_spend, the same tables the board and sync buttons write to.
 export function B2BPipelineStats() {
   const { metrics, error } = useB2BMetrics();
-  const na = error ? "—" : metrics ? undefined : "…";
+  // Prioritize already-loaded data over a later transient poll error —
+  // a momentary failure shouldn't blank out real numbers already on screen.
+  const na = metrics ? undefined : error ? "—" : "…";
 
   return (
     <div className="reveal-group grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -78,7 +80,9 @@ export function B2BPipelineStats() {
 // yet, so those stay as explicit placeholders rather than a fabricated number.
 export function B2BOverviewStats() {
   const { metrics, error } = useB2BMetrics();
-  const na = error ? "—" : metrics ? undefined : "…";
+  // Prioritize already-loaded data over a later transient poll error —
+  // a momentary failure shouldn't blank out real numbers already on screen.
+  const na = metrics ? undefined : error ? "—" : "…";
 
   return (
     <>
