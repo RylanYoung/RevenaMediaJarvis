@@ -129,7 +129,7 @@ export function RevenuePanel() {
         <div className="p-5">
           <EmptyState
             title="No manual entries yet"
-            description="Lead Distro-derived revenue (from accepted B2C leads) is added automatically once synced — this is for anything else, like direct invoices."
+            description="Stripe and Lead Distro revenue is added automatically once synced (see the breakdown above) — this form is for anything else, like cash or bank transfer payments."
           />
         </div>
       )}

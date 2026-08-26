@@ -13,6 +13,9 @@ type Summary = {
   b2cSpend: number;
   b2bSpend: number;
   fixedCostsProrated: number;
+  leadDistroRevenue: number;
+  stripeRevenue: number;
+  manualRevenue: number;
 };
 
 function currency(n: number) {
@@ -51,6 +54,44 @@ export function FinancialsSummary() {
         hint="Net Profit ÷ Revenue"
         tone="accent"
       />
+    </div>
+  );
+}
+
+export function RevenueBreakdown() {
+  const [summary, setSummary] = useState<Summary | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/financials/summary?days=30")
+      .then((res) => res.json())
+      .then((json) => {
+        if (!json.ok) throw new Error(json.error);
+        setSummary(json);
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"));
+  }, []);
+
+  const rows: Array<[string, number | null]> = summary
+    ? [
+        ["Stripe (installer invoices)", summary.stripeRevenue],
+        ["Lead Distro (accepted leads)", summary.leadDistroRevenue],
+        ["Manual entries", summary.manualRevenue],
+      ]
+    : [
+        ["Stripe (installer invoices)", null],
+        ["Lead Distro (accepted leads)", null],
+        ["Manual entries", null],
+      ];
+
+  return (
+    <div className="divide-y divide-border border-b border-border">
+      {rows.map(([label, value]) => (
+        <div key={label} className="flex items-center justify-between px-5 py-3 text-sm">
+          <span className="text-muted">{label}</span>
+          <span className="font-mono text-foreground">{value !== null ? currency(value) : error ? "—" : "…"}</span>
+        </div>
+      ))}
     </div>
   );
 }

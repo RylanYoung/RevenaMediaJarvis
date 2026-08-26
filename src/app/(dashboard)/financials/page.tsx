@@ -3,9 +3,10 @@ import { SectionLabel } from "@/components/ui/section-label";
 import { StatTile } from "@/components/ui/stat-tile";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { FinancialsSummary, ExpensesBreakdown } from "@/components/financials-summary";
+import { FinancialsSummary, ExpensesBreakdown, RevenueBreakdown } from "@/components/financials-summary";
 import { RevenuePanel } from "@/components/revenue-panel";
 import { FixedCostsPanel } from "@/components/fixed-costs-panel";
+import { SyncButton } from "@/components/sync-button";
 
 export default function FinancialsPage() {
   return (
@@ -23,8 +24,18 @@ export default function FinancialsPage() {
           <Card>
             <CardHeader
               title="Revenue"
-              subtitle="Lead Distro-derived (accepted B2C lead sales) + manual entries — add your own below"
+              subtitle="Stripe + Lead Distro-derived + manual entries, all added together"
+              action={
+                <SyncButton
+                  endpoint="/api/sync/stripe"
+                  body={{ days: 30 }}
+                  resultField="paymentsSynced"
+                  unitLabel="payment"
+                  label="Sync Stripe"
+                />
+              }
             />
+            <RevenueBreakdown />
             <RevenuePanel />
           </Card>
 

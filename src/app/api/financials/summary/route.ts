@@ -14,20 +14,27 @@ export async function GET(request: Request) {
 
     const supabase = getSupabaseAdmin();
 
-    const [leadsRes, revenueRes, adSpendRes, fixedCostsRes] = await Promise.all([
+    const [leadsRes, revenueRes, stripeRes, adSpendRes, fixedCostsRes] = await Promise.all([
       supabase.from("b2c_leads").select("revenue").gte("lead_created_at", dateFromStr),
       supabase.from("revenue_entries").select("amount").gte("entry_date", dateFromStr).lte("entry_date", dateToStr),
+      supabase
+        .from("stripe_payments")
+        .select("amount")
+        .eq("refunded", false)
+        .gte("paid_at", dateFromStr)
+        .lte("paid_at", dateToStr),
       supabase.from("ad_spend").select("funnel, cost").gte("spend_date", dateFromStr).lte("spend_date", dateToStr),
       supabase.from("fixed_costs").select("monthly_amount"),
     ]);
 
-    for (const res of [leadsRes, revenueRes, adSpendRes, fixedCostsRes]) {
+    for (const res of [leadsRes, revenueRes, stripeRes, adSpendRes, fixedCostsRes]) {
       if (res.error) throw new Error(res.error.message);
     }
 
     const leadDistroRevenue = (leadsRes.data ?? []).reduce((sum, r) => sum + Number(r.revenue || 0), 0);
     const manualRevenue = (revenueRes.data ?? []).reduce((sum, r) => sum + Number(r.amount || 0), 0);
-    const totalRevenue = leadDistroRevenue + manualRevenue;
+    const stripeRevenue = (stripeRes.data ?? []).reduce((sum, r) => sum + Number(r.amount || 0), 0);
+    const totalRevenue = leadDistroRevenue + manualRevenue + stripeRevenue;
 
     const b2cSpend = (adSpendRes.data ?? [])
       .filter((r) => r.funnel === "b2c")
@@ -50,6 +57,7 @@ export async function GET(request: Request) {
       dateTo: dateToStr,
       leadDistroRevenue,
       manualRevenue,
+      stripeRevenue,
       totalRevenue,
       b2cSpend,
       b2bSpend,

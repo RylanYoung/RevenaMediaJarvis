@@ -69,9 +69,9 @@ create table if not exists fixed_costs (
   created_at timestamptz not null default now()
 );
 
--- Manual revenue entries (Financials page) — the fallback when Lead
--- Distro-derived revenue (sum of b2c_leads.revenue) isn't available or
--- doesn't cover everything, e.g. direct Stripe invoices.
+-- Manual revenue entries (Financials page) — always available alongside
+-- Lead Distro- and Stripe-derived revenue, e.g. for cash/bank transfer
+-- payments that never touch Stripe.
 create table if not exists revenue_entries (
   id uuid primary key default gen_random_uuid(),
   amount numeric(10, 2) not null,
@@ -79,3 +79,20 @@ create table if not exists revenue_entries (
   entry_date date not null default current_date,
   created_at timestamptz not null default now()
 );
+
+-- Installer client payments — confirmed live via the real Stripe account:
+-- charges flow through GoHighLevel invoicing into Stripe. id is Stripe's
+-- own charge id, keeping re-sync idempotent.
+create table if not exists stripe_payments (
+  id text primary key,               -- Stripe charge id, e.g. ch_...
+  amount numeric(10, 2) not null,    -- converted from Stripe's cents
+  currency text not null,
+  customer_id text,
+  description text,
+  status text not null,
+  refunded boolean not null default false,
+  paid_at timestamptz not null,      -- Stripe's `created` timestamp
+  synced_at timestamptz not null default now()
+);
+
+create index if not exists stripe_payments_paid_at_idx on stripe_payments (paid_at);
