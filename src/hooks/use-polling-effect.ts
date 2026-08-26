@@ -12,7 +12,11 @@ import { onDataChanged } from "@/lib/sync-bus";
 // notifyDataChanged() (see lib/sync-bus.ts) — e.g. adding an expense in
 // one card updates the totals in another card immediately, not on the
 // next poll tick.
-export function usePollingEffect(fn: () => void, intervalMs = 15000) {
+//
+// Pass `deps` for values the fetch itself depends on (e.g. a selected
+// date range) — changing one re-runs `fn` immediately instead of waiting
+// for the next tick, the same way a useEffect dependency array works.
+export function usePollingEffect(fn: () => void, intervalMs = 15000, deps: unknown[] = []) {
   const fnRef = useRef(fn);
   fnRef.current = fn;
 
@@ -29,5 +33,5 @@ export function usePollingEffect(fn: () => void, intervalMs = 15000) {
       unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [intervalMs]);
+  }, [intervalMs, ...deps]);
 }
