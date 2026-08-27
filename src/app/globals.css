@@ -67,6 +67,27 @@ body {
   background: color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
+/* Native number-input spinners and date-input calendar icons render with a
+   jarring light-on-dark browser default that clashes with the rest of the
+   theme — strip the spinner entirely and recolor the calendar icon. */
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px;
+}
+:root:not([data-theme="light"]) input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.4);
+}
+
 .card-shadow {
   box-shadow: var(--card-shadow);
 }
