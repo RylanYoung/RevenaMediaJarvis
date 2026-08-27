@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { StatTile } from "@/components/ui/stat-tile";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { usePollingEffect } from "@/hooks/use-polling-effect";
 
 type Summary = {
@@ -37,8 +38,8 @@ function fetchSummary(
     .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"));
 }
 
-export function FinancialsSummary() {
-  const [summary, setSummary] = useState<Summary | null>(null);
+export function FinancialsSummary({ initialSummary }: { initialSummary?: Summary | null }) {
+  const [summary, setSummary] = useState<Summary | null>(initialSummary ?? null);
   const [error, setError] = useState<string | null>(null);
 
   usePollingEffect(() => fetchSummary(setSummary, setError));
@@ -47,17 +48,31 @@ export function FinancialsSummary() {
 
   return (
     <div className="reveal-group grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <StatTile label="Total Revenue" value={summary ? currency(summary.totalRevenue) : "—"} hint={hint} />
-      <StatTile label="Total Expenses" value={summary ? currency(summary.totalExpenses) : "—"} hint="Ad spend + fixed costs" />
+      <StatTile
+        label="Total Revenue"
+        value={summary ? <AnimatedNumber value={summary.totalRevenue} format={currency} /> : "—"}
+        hint={hint}
+      />
+      <StatTile
+        label="Total Expenses"
+        value={summary ? <AnimatedNumber value={summary.totalExpenses} format={currency} /> : "—"}
+        hint="Ad spend + fixed costs"
+      />
       <StatTile
         label="Net Profit"
-        value={summary ? currency(summary.profit) : "—"}
+        value={summary ? <AnimatedNumber value={summary.profit} format={currency} /> : "—"}
         hint="Revenue − Expenses"
         tone="accent"
       />
       <StatTile
         label="All-in Margin %"
-        value={summary && summary.marginPct !== null ? `${summary.marginPct.toFixed(0)}%` : "—"}
+        value={
+          summary && summary.marginPct !== null ? (
+            <AnimatedNumber value={summary.marginPct} format={(n) => `${n.toFixed(0)}%`} />
+          ) : (
+            "—"
+          )
+        }
         hint="Net Profit ÷ Revenue"
         tone="accent"
       />
@@ -65,8 +80,8 @@ export function FinancialsSummary() {
   );
 }
 
-export function RevenueBreakdown() {
-  const [summary, setSummary] = useState<Summary | null>(null);
+export function RevenueBreakdown({ initialSummary }: { initialSummary?: Summary | null }) {
+  const [summary, setSummary] = useState<Summary | null>(initialSummary ?? null);
   const [error, setError] = useState<string | null>(null);
 
   usePollingEffect(() => fetchSummary(setSummary, setError));
@@ -88,15 +103,17 @@ export function RevenueBreakdown() {
       {rows.map(([label, value]) => (
         <div key={label} className="flex items-center justify-between px-5 py-3 text-sm">
           <span className="text-muted">{label}</span>
-          <span className="font-mono text-foreground">{value !== null ? currency(value) : error ? "—" : "…"}</span>
+          <span className="font-mono text-foreground">
+            {value !== null ? <AnimatedNumber value={value} format={currency} /> : error ? "—" : "…"}
+          </span>
         </div>
       ))}
     </div>
   );
 }
 
-export function ExpensesBreakdown() {
-  const [summary, setSummary] = useState<Summary | null>(null);
+export function ExpensesBreakdown({ initialSummary }: { initialSummary?: Summary | null }) {
+  const [summary, setSummary] = useState<Summary | null>(initialSummary ?? null);
   const [error, setError] = useState<string | null>(null);
 
   usePollingEffect(() => fetchSummary(setSummary, setError));
@@ -118,9 +135,54 @@ export function ExpensesBreakdown() {
       {rows.map(([label, value]) => (
         <div key={label} className="flex items-center justify-between px-5 py-3 text-sm">
           <span className="text-muted">{label}</span>
-          <span className="font-mono text-foreground">{value !== null ? currency(value) : error ? "—" : "…"}</span>
+          <span className="font-mono text-foreground">
+            {value !== null ? <AnimatedNumber value={value} format={currency} /> : error ? "—" : "…"}
+          </span>
         </div>
       ))}
+    </div>
+  );
+}
+
+function pct(n: number) {
+  return `${n.toFixed(0)}%`;
+}
+
+// Ad Spend Efficiency on Financials — was a permanent static "—" before,
+// never actually wired to the summary data sitting right next to it.
+export function AdSpendEfficiency({ initialSummary }: { initialSummary?: Summary | null }) {
+  const [summary, setSummary] = useState<Summary | null>(initialSummary ?? null);
+  const [error, setError] = useState<string | null>(null);
+
+  usePollingEffect(() => fetchSummary(setSummary, setError));
+
+  const na = summary ? undefined : error ? "—" : "…";
+  const ratio = (spend: number) => (summary && summary.totalRevenue > 0 ? (spend / summary.totalRevenue) * 100 : null);
+
+  return (
+    <div className="reveal-group grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <StatTile
+        label="B2C Ad Spend : Revenue"
+        value={na ?? (ratio(summary!.b2cSpend) !== null ? <AnimatedNumber value={ratio(summary!.b2cSpend)!} format={pct} /> : "—")}
+        hint="B2C spend ÷ total revenue"
+      />
+      <StatTile
+        label="B2B Ad Spend : Revenue"
+        value={na ?? (ratio(summary!.b2bSpend) !== null ? <AnimatedNumber value={ratio(summary!.b2bSpend)!} format={pct} /> : "—")}
+        hint="B2B spend ÷ total revenue"
+      />
+      <StatTile
+        label="Total Ad Spend : Revenue"
+        value={
+          na ??
+          (ratio(summary!.b2cSpend + summary!.b2bSpend) !== null ? (
+            <AnimatedNumber value={ratio(summary!.b2cSpend + summary!.b2bSpend)!} format={pct} />
+          ) : (
+            "—"
+          ))
+        }
+        hint="Combined, for reference only"
+      />
     </div>
   );
 }

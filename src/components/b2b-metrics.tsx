@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { StatTile } from "@/components/ui/stat-tile";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { usePollingEffect } from "@/hooks/use-polling-effect";
 
 type Metrics = {
@@ -26,6 +27,14 @@ type Metrics = {
 
 function currency(n: number) {
   return n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
+}
+
+function whole(n: number) {
+  return String(Math.round(n));
+}
+
+function pct(n: number) {
+  return `${n.toFixed(0)}%`;
 }
 
 function useB2BMetrics() {
@@ -58,20 +67,33 @@ export function B2BPipelineStats() {
     <div className="reveal-group grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <StatTile
         label="Cost per Lead (CPL)"
-        value={na ?? currency(metrics!.cpl ?? 0)}
+        value={na ?? <AnimatedNumber value={metrics!.cpl ?? 0} format={currency} />}
         hint="B2B ad spend ÷ leads"
       />
-      <StatTile label="Leads" value={na ?? String(metrics!.totalLeads)} hint="All-time, from Meta / Lead Distro / manual" />
-      <StatTile label="Booked" value={na ?? String(metrics!.bookedCount)} hint="Currently at Booked or later" />
-      <StatTile label="Closed" value={na ?? String(metrics!.closedCount)} hint="Won deals" tone="positive" />
+      <StatTile
+        label="Leads"
+        value={na ?? <AnimatedNumber value={metrics!.totalLeads} format={whole} />}
+        hint="All-time, from Meta / Lead Distro / manual"
+      />
+      <StatTile
+        label="Booked"
+        value={na ?? <AnimatedNumber value={metrics!.bookedCount} format={whole} />}
+        hint="Currently at Booked or later"
+      />
+      <StatTile
+        label="Closed"
+        value={na ?? <AnimatedNumber value={metrics!.closedCount} format={whole} />}
+        hint="Won deals"
+        tone="positive"
+      />
       <StatTile
         label="Avg. Deal Size"
-        value={na ?? (metrics!.avgDealSize !== null ? currency(metrics!.avgDealSize) : "—")}
+        value={na ?? (metrics!.avgDealSize !== null ? <AnimatedNumber value={metrics!.avgDealSize} format={currency} /> : "—")}
         hint="Avg. value of closed deals"
       />
       <StatTile
         label="Lost Rate"
-        value={na ?? (metrics!.lostRatePct !== null ? `${metrics!.lostRatePct.toFixed(0)}%` : "—")}
+        value={na ?? (metrics!.lostRatePct !== null ? <AnimatedNumber value={metrics!.lostRatePct} format={pct} /> : "—")}
         hint="Lost ÷ total leads"
         tone="negative"
       />
@@ -96,7 +118,7 @@ export function B2BOverviewStats() {
     <>
       <StatTile
         label="Installer CAC"
-        value={na ?? (metrics!.cac !== null ? currency(metrics!.cac) : "—")}
+        value={na ?? (metrics!.cac !== null ? <AnimatedNumber value={metrics!.cac} format={currency} /> : "—")}
         hint="B2B ad spend ÷ closed deals"
         tone="accent"
       />
@@ -104,18 +126,18 @@ export function B2BOverviewStats() {
       <StatTile label="LTV : CAC ratio" value="—" hint="Needs client lifetime tracking" />
       <StatTile
         label="Monthly Churn Rate"
-        value={clientsNa ?? (metrics!.churnRatePct !== null ? `${metrics!.churnRatePct.toFixed(0)}%` : "—")}
+        value={clientsNa ?? (metrics!.churnRatePct !== null ? <AnimatedNumber value={metrics!.churnRatePct} format={pct} /> : "—")}
         hint="Churned ÷ (active + churned) — Clients page"
         tone="negative"
       />
       <StatTile
         label="Active Installer Clients"
-        value={clientsNa ?? String(metrics!.activeClients)}
+        value={clientsNa ?? <AnimatedNumber value={metrics!.activeClients} format={whole} />}
         hint="From the Clients page"
       />
       <StatTile
         label="B2B Ad Spend"
-        value={na ?? currency(metrics!.totalB2BSpend)}
+        value={na ?? <AnimatedNumber value={metrics!.totalB2BSpend} format={currency} />}
         hint="Last 30 days — Meta + manual"
       />
     </>
@@ -132,18 +154,25 @@ export function B2BChurnStats() {
     <div className="reveal-group grid grid-cols-1 gap-4 sm:grid-cols-3">
       <StatTile
         label="Monthly Churn Rate"
-        value={clientsNa ?? (metrics!.churnRatePct !== null ? `${metrics!.churnRatePct.toFixed(0)}%` : "—")}
+        value={clientsNa ?? (metrics!.churnRatePct !== null ? <AnimatedNumber value={metrics!.churnRatePct} format={pct} /> : "—")}
         hint="Churned ÷ (active + churned)"
         tone="negative"
       />
       <StatTile
         label="Clients Churned (this month)"
-        value={clientsNa ?? String(metrics!.churnedInWindow)}
+        value={clientsNa ?? <AnimatedNumber value={metrics!.churnedInWindow} format={whole} />}
         hint="From the Clients page"
       />
       <StatTile
         label="Avg. Leads Bought Before Churn"
-        value={clientsNa ?? (metrics!.avgLeadsBeforeChurn !== null ? metrics!.avgLeadsBeforeChurn.toFixed(1) : "—")}
+        value={
+          clientsNa ??
+          (metrics!.avgLeadsBeforeChurn !== null ? (
+            <AnimatedNumber value={metrics!.avgLeadsBeforeChurn} format={(n) => n.toFixed(1)} />
+          ) : (
+            "—"
+          ))
+        }
         hint="Avg. across churned clients"
       />
     </div>

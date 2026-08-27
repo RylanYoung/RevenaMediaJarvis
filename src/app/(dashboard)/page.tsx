@@ -6,8 +6,19 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { SyncStatus } from "@/components/ui/sync-status";
 import { OverviewHero } from "@/components/overview-hero";
 import { B2BOverviewStats } from "@/components/b2b-metrics";
+import { getFinancialsSummary } from "@/lib/financials-summary";
 
-export default function OverviewPage() {
+// Supabase reads here aren't `fetch`, so Next has no signal to treat this
+// route as dynamic — without this it gets statically baked at build time.
+export const dynamic = "force-dynamic";
+
+export default async function OverviewPage() {
+  // Prefetched here (server-side, default 30D range) so the page arrives
+  // with real numbers already in it instead of a blank-then-loads flash.
+  // Falls back to null (client fetches as normal) if Supabase isn't set
+  // up yet — this must never break the page from rendering.
+  const initialSummary = await getFinancialsSummary(30).catch(() => null);
+
   return (
     <>
       <PageHeader
@@ -15,7 +26,7 @@ export default function OverviewPage() {
         description="B2C and B2B are tracked completely separately — no shared or blended ad spend numbers."
       />
 
-      <OverviewHero />
+      <OverviewHero initialSummary={initialSummary} />
 
       <div className="mb-6">
         <SectionLabel>B2C — SolarSavings.au (light visibility)</SectionLabel>

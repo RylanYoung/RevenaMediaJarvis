@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Card } from "./card";
 
 export function StatTile({
@@ -7,7 +8,7 @@ export function StatTile({
   tone = "neutral",
 }: {
   label: string;
-  value: string;
+  value: ReactNode;
   hint?: string;
   tone?: "neutral" | "accent" | "positive" | "negative" | "warning";
 }) {

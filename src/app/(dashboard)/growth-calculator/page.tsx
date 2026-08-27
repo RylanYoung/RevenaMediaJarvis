@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardHeader } from "@/components/ui/card";
 import { StatTile } from "@/components/ui/stat-tile";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { FormField, inputClass } from "@/components/ui/form-field";
 
 function currency(n: number) {
@@ -184,26 +185,26 @@ export default function GrowthCalculatorPage() {
         <Card>
           <CardHeader title="What it takes" subtitle="Backwards from your revenue target" />
           <div className="grid grid-cols-3 gap-4 p-5">
-            <StatTile label="Closed deals needed" value={`${round(result.closed)}`} />
-            <StatTile label="Booked needed" value={`${round(result.booked)}`} />
-            <StatTile label="Calls needed" value={`${round(result.called)}`} />
+            <StatTile label="Closed deals needed" value={<AnimatedNumber value={round(result.closed)} format={(n) => String(Math.round(n))} />} />
+            <StatTile label="Booked needed" value={<AnimatedNumber value={round(result.booked)} format={(n) => String(Math.round(n))} />} />
+            <StatTile label="Calls needed" value={<AnimatedNumber value={round(result.called)} format={(n) => String(Math.round(n))} />} />
           </div>
           <div className="px-5">
-            <StatTile label="Leads needed" value={`${round(result.leads)}`} />
+            <StatTile label="Leads needed" value={<AnimatedNumber value={round(result.leads)} format={(n) => String(Math.round(n))} />} />
           </div>
           <div className="grid grid-cols-1 gap-4 px-5 pb-5 pt-4 sm:grid-cols-2">
             <StatTile
               label="B2B Ad Spend Required"
-              value={currency(result.spend)}
+              value={<AnimatedNumber value={result.spend} format={currency} />}
               hint="Leads needed × cost per lead"
             />
-            <StatTile label="CAC" value={currency(result.cac)} hint="Ad spend ÷ closed deals" tone="accent" />
+            <StatTile label="CAC" value={<AnimatedNumber value={result.cac} format={currency} />} hint="Ad spend ÷ closed deals" tone="accent" />
           </div>
           <div className="grid grid-cols-1 gap-4 px-5 pb-5 sm:grid-cols-2">
-            <StatTile label="LTV" value={currency(result.ltv)} hint="Monthly value × lifetime" tone="accent" />
+            <StatTile label="LTV" value={<AnimatedNumber value={result.ltv} format={currency} />} hint="Monthly value × lifetime" tone="accent" />
             <StatTile
               label="LTV : CAC"
-              value={isFinite(result.ltvToCac) ? `${result.ltvToCac.toFixed(1)}x` : "—"}
+              value={isFinite(result.ltvToCac) ? <AnimatedNumber value={result.ltvToCac} format={(n) => `${n.toFixed(1)}x`} /> : "—"}
               hint="Above 3x is healthy"
               tone={result.ltvToCac >= 3 ? "positive" : "negative"}
             />

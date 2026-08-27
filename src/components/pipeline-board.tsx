@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FormField, inputClass, primaryButtonClass } from "@/components/ui/form-field";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { usePollingEffect } from "@/hooks/use-polling-effect";
 import { notifyDataChanged } from "@/lib/sync-bus";
 
@@ -352,7 +353,7 @@ function ConversionStat({
     <div className="px-6 py-5">
       <p className="text-sm text-muted">{label}</p>
       <p className={`mt-1 font-mono text-2xl font-semibold ${toneClass}`}>
-        {value === null ? "—" : `${value.toFixed(0)}%`}
+        {value === null ? "—" : <AnimatedNumber value={value} format={(n) => `${n.toFixed(0)}%`} />}
       </p>
     </div>
   );

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FormField, inputClass, primaryButtonClass } from "@/components/ui/form-field";
 import { StatTile } from "@/components/ui/stat-tile";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { usePollingEffect } from "@/hooks/use-polling-effect";
 import { notifyDataChanged } from "@/lib/sync-bus";
 
@@ -50,10 +51,14 @@ export function ClientsSummary() {
 
   return (
     <div className="reveal-group grid grid-cols-2 gap-4 sm:grid-cols-4">
-      <StatTile label="Active Clients" value={na ?? String(active)} tone="positive" />
-      <StatTile label="Past Clients" value={na ?? String(past)} tone="negative" />
-      <StatTile label="Total Leads Purchased" value={na ?? String(totalLeads)} hint="All clients, all-time" />
-      <StatTile label="Total Client Revenue" value={na ?? currency(totalRevenue)} tone="accent" />
+      <StatTile label="Active Clients" value={na ?? <AnimatedNumber value={active} format={(n) => String(Math.round(n))} />} tone="positive" />
+      <StatTile label="Past Clients" value={na ?? <AnimatedNumber value={past} format={(n) => String(Math.round(n))} />} tone="negative" />
+      <StatTile
+        label="Total Leads Purchased"
+        value={na ?? <AnimatedNumber value={totalLeads} format={(n) => String(Math.round(n))} />}
+        hint="All clients, all-time"
+      />
+      <StatTile label="Total Client Revenue" value={na ?? <AnimatedNumber value={totalRevenue} format={currency} />} tone="accent" />
     </div>
   );
 }

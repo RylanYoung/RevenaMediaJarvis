@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { StatTile } from "@/components/ui/stat-tile";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { usePollingEffect } from "@/hooks/use-polling-effect";
 
 const RANGES = [
@@ -26,9 +27,12 @@ function currency(n: number) {
   return n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 }
 
-export function OverviewHero() {
+export function OverviewHero({ initialSummary }: { initialSummary?: Summary | null }) {
   const [range, setRange] = useState<RangeKey>("30d");
-  const [summary, setSummary] = useState<Summary | null>(null);
+  // Pre-fetched server-side for the default 30D range, so the first
+  // paint already has real numbers instead of a blank/loading flash —
+  // AnimatedNumber still counts up from 0 on mount either way.
+  const [summary, setSummary] = useState<Summary | null>(initialSummary ?? null);
   const [error, setError] = useState<string | null>(null);
   const active = RANGES.find((r) => r.key === range)!;
 
@@ -81,17 +85,33 @@ export function OverviewHero() {
       <div className="reveal-group grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatTile
           label="Revenue"
-          value={na ?? currency(summary!.totalRevenue)}
+          value={na ?? <AnimatedNumber value={summary!.totalRevenue} format={currency} />}
           hint={`Stripe + Lead Distro + manual — ${active.hint.toLowerCase()}`}
         />
-        <StatTile label="Expenses" value={na ?? currency(summary!.totalExpenses)} hint="Ad spend + fixed costs" />
+        <StatTile
+          label="Expenses"
+          value={na ?? <AnimatedNumber value={summary!.totalExpenses} format={currency} />}
+          hint="Ad spend + fixed costs"
+        />
         <StatTile
           label="Margin %"
-          value={na ?? (summary!.marginPct !== null ? `${summary!.marginPct.toFixed(0)}%` : "—")}
+          value={
+            na ??
+            (summary!.marginPct !== null ? (
+              <AnimatedNumber value={summary!.marginPct} format={(n) => `${n.toFixed(0)}%`} />
+            ) : (
+              "—"
+            ))
+          }
           hint="Profit ÷ Revenue"
           tone="accent"
         />
-        <StatTile label="Profit" value={na ?? currency(summary!.profit)} hint="Revenue − Expenses" tone="accent" />
+        <StatTile
+          label="Profit"
+          value={na ?? <AnimatedNumber value={summary!.profit} format={currency} />}
+          hint="Revenue − Expenses"
+          tone="accent"
+        />
       </div>
     </div>
   );

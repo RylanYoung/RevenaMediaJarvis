@@ -1,15 +1,28 @@
 import { PageHeader } from "@/components/ui/page-header";
 import { SectionLabel } from "@/components/ui/section-label";
-import { StatTile } from "@/components/ui/stat-tile";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { FinancialsSummary, ExpensesBreakdown, RevenueBreakdown } from "@/components/financials-summary";
+import {
+  FinancialsSummary,
+  ExpensesBreakdown,
+  RevenueBreakdown,
+  AdSpendEfficiency,
+} from "@/components/financials-summary";
 import { RevenuePanel } from "@/components/revenue-panel";
 import { FixedCostsPanel } from "@/components/fixed-costs-panel";
 import { AdSpendPanel } from "@/components/ad-spend-panel";
 import { SyncButton } from "@/components/sync-button";
+import { getFinancialsSummary } from "@/lib/financials-summary";
 
-export default function FinancialsPage() {
+// Supabase reads here aren't `fetch`, so Next has no signal to treat this
+// route as dynamic — without this it gets statically baked at build time.
+export const dynamic = "force-dynamic";
+
+export default async function FinancialsPage() {
+  // Prefetched server-side so the page arrives with real numbers already
+  // in it instead of every card showing its own blank-then-loads flash.
+  const initialSummary = await getFinancialsSummary(30).catch(() => null);
+
   return (
     <>
       <PageHeader
@@ -17,7 +30,7 @@ export default function FinancialsPage() {
         description="Revenue, ad spend, fixed costs, margin, and profit — the true all-in picture of the business. Last 30 days."
       />
 
-      <FinancialsSummary />
+      <FinancialsSummary initialSummary={initialSummary} />
 
       <div className="mt-8">
         <SectionLabel>Revenue vs. Expenses</SectionLabel>
@@ -36,13 +49,13 @@ export default function FinancialsPage() {
                 />
               }
             />
-            <RevenueBreakdown />
+            <RevenueBreakdown initialSummary={initialSummary} />
             <RevenuePanel />
           </Card>
 
           <Card>
             <CardHeader title="Expenses" subtitle="B2C and B2B ad spend are tracked separately, never combined" />
-            <ExpensesBreakdown />
+            <ExpensesBreakdown initialSummary={initialSummary} />
           </Card>
         </div>
       </div>
@@ -59,11 +72,7 @@ export default function FinancialsPage() {
 
       <div className="mt-8">
         <SectionLabel>Ad Spend Efficiency</SectionLabel>
-        <div className="reveal-group grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <StatTile label="B2C Ad Spend : Revenue" value="—" hint="B2C spend ÷ total revenue" />
-          <StatTile label="B2B Ad Spend : Revenue" value="—" hint="B2B spend ÷ total revenue" />
-          <StatTile label="Total Ad Spend : Revenue" value="—" hint="Combined, for reference only" />
-        </div>
+        <AdSpendEfficiency initialSummary={initialSummary} />
       </div>
 
       <div className="mt-8">
