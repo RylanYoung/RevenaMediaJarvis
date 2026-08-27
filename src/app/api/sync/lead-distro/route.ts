@@ -44,6 +44,7 @@ export async function POST(request: Request) {
         id: lead.id,
         campaign_id: lead.campaign_id,
         supplier_id: lead.supplier_id,
+        buyer_id: lead.buyer_id,
         status: lead.status,
         outcome: lead.outcome,
         state: lead.state,

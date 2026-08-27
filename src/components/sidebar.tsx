@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: "/", label: "Overview" },
   { href: "/b2c-funnel", label: "B2C Funnel" },
   { href: "/b2b-pipeline", label: "B2B Pipeline" },
+  { href: "/clients", label: "Clients" },
   { href: "/financials", label: "Financials" },
   { href: "/growth-calculator", label: "Growth Calculator" },
   { href: "/settings", label: "Settings" },

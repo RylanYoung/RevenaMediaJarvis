@@ -17,6 +17,11 @@ type Metrics = {
   calledToBookedPct: number | null;
   bookedToClosedPct: number | null;
   lostRatePct: number | null;
+  hasClientData: boolean;
+  activeClients: number;
+  churnedInWindow: number;
+  churnRatePct: number | null;
+  avgLeadsBeforeChurn: number | null;
 };
 
 function currency(n: number) {
@@ -75,14 +80,17 @@ export function B2BPipelineStats() {
 }
 
 // The B2B section on Overview — only the metrics that are honestly
-// computable from real data land here (CAC, spend, active clients).
-// LTV and churn need lifetime/cancellation tracking that doesn't exist
-// yet, so those stay as explicit placeholders rather than a fabricated number.
+// computable from real data land here. CAC and B2B Ad Spend come from
+// b2b_leads + ad_spend; Active Clients and Churn Rate come from the real
+// Clients page/table. LTV stays a placeholder — it needs client lifetime
+// value tracking (avg revenue over a full relationship) that doesn't
+// exist yet, so it's not fabricated.
 export function B2BOverviewStats() {
   const { metrics, error } = useB2BMetrics();
   // Prioritize already-loaded data over a later transient poll error —
   // a momentary failure shouldn't blank out real numbers already on screen.
   const na = metrics ? undefined : error ? "—" : "…";
+  const clientsNa = metrics && metrics.hasClientData ? undefined : na ?? "—";
 
   return (
     <>
@@ -92,13 +100,18 @@ export function B2BOverviewStats() {
         hint="B2B ad spend ÷ closed deals"
         tone="accent"
       />
-      <StatTile label="Installer LTV" value="—" hint="Needs churn/lifetime tracking" tone="accent" />
-      <StatTile label="LTV : CAC ratio" value="—" hint="Needs churn/lifetime tracking" />
-      <StatTile label="Monthly Churn Rate" value="—" hint="Needs churn tracking" />
+      <StatTile label="Installer LTV" value="—" hint="Needs client lifetime tracking" tone="accent" />
+      <StatTile label="LTV : CAC ratio" value="—" hint="Needs client lifetime tracking" />
+      <StatTile
+        label="Monthly Churn Rate"
+        value={clientsNa ?? (metrics!.churnRatePct !== null ? `${metrics!.churnRatePct.toFixed(0)}%` : "—")}
+        hint="Churned ÷ (active + churned) — Clients page"
+        tone="negative"
+      />
       <StatTile
         label="Active Installer Clients"
-        value={na ?? String(metrics!.closedCount)}
-        hint="Closed deals, all-time"
+        value={clientsNa ?? String(metrics!.activeClients)}
+        hint="From the Clients page"
       />
       <StatTile
         label="B2B Ad Spend"
@@ -106,5 +119,33 @@ export function B2BOverviewStats() {
         hint="Last 30 days — Meta + manual"
       />
     </>
+  );
+}
+
+// The Churn section on B2B Pipeline — same source as B2BOverviewStats.
+export function B2BChurnStats() {
+  const { metrics, error } = useB2BMetrics();
+  const na = metrics ? undefined : error ? "—" : "…";
+  const clientsNa = metrics && metrics.hasClientData ? undefined : na ?? "—";
+
+  return (
+    <div className="reveal-group grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <StatTile
+        label="Monthly Churn Rate"
+        value={clientsNa ?? (metrics!.churnRatePct !== null ? `${metrics!.churnRatePct.toFixed(0)}%` : "—")}
+        hint="Churned ÷ (active + churned)"
+        tone="negative"
+      />
+      <StatTile
+        label="Clients Churned (this month)"
+        value={clientsNa ?? String(metrics!.churnedInWindow)}
+        hint="From the Clients page"
+      />
+      <StatTile
+        label="Avg. Leads Bought Before Churn"
+        value={clientsNa ?? (metrics!.avgLeadsBeforeChurn !== null ? metrics!.avgLeadsBeforeChurn.toFixed(1) : "—")}
+        hint="Avg. across churned clients"
+      />
+    </div>
   );
 }

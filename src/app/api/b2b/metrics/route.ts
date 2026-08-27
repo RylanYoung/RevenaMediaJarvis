@@ -14,7 +14,7 @@ export async function GET(request: Request) {
 
     const supabase = getSupabaseAdmin();
 
-    const [leadsRes, spendRes] = await Promise.all([
+    const [leadsRes, spendRes, clientsRes] = await Promise.all([
       supabase.from("b2b_leads").select("stage, deal_value"),
       supabase
         .from("ad_spend")
@@ -22,9 +22,11 @@ export async function GET(request: Request) {
         .eq("funnel", "b2b")
         .gte("spend_date", dateFromStr)
         .lte("spend_date", dateToStr),
+      supabase.from("clients").select("status, churned_at, leads_purchased"),
     ]);
     if (leadsRes.error) throw new Error(leadsRes.error.message);
     if (spendRes.error) throw new Error(spendRes.error.message);
+    if (clientsRes.error) throw new Error(clientsRes.error.message);
 
     const leads = leadsRes.data ?? [];
     const totalLeads = leads.length;
@@ -40,6 +42,20 @@ export async function GET(request: Request) {
         : null;
 
     const totalB2BSpend = (spendRes.data ?? []).reduce((sum, r) => sum + Number(r.cost || 0), 0);
+
+    // Real client roster (Clients page) — Active Clients and Churn Rate now
+    // come from here instead of being a b2b_leads proxy / static placeholder.
+    const clients = clientsRes.data ?? [];
+    const activeClients = clients.filter((c) => c.status === "active").length;
+    const churnedInWindow = clients.filter(
+      (c) => c.status === "past" && c.churned_at && new Date(c.churned_at) >= dateFrom
+    ).length;
+    const churnBase = activeClients + churnedInWindow;
+    const churnedClients = clients.filter((c) => c.status === "past");
+    const avgLeadsBeforeChurn =
+      churnedClients.length > 0
+        ? churnedClients.reduce((sum, c) => sum + Number(c.leads_purchased || 0), 0) / churnedClients.length
+        : null;
 
     return NextResponse.json({
       ok: true,
@@ -58,6 +74,11 @@ export async function GET(request: Request) {
       calledToBookedPct: calledCount > 0 ? (bookedCount / calledCount) * 100 : null,
       bookedToClosedPct: bookedCount > 0 ? (closedCount / bookedCount) * 100 : null,
       lostRatePct: totalLeads > 0 ? (lostCount / totalLeads) * 100 : null,
+      hasClientData: clients.length > 0,
+      activeClients,
+      churnedInWindow,
+      churnRatePct: churnBase > 0 ? (churnedInWindow / churnBase) * 100 : null,
+      avgLeadsBeforeChurn,
     });
   } catch (err) {
     return NextResponse.json(

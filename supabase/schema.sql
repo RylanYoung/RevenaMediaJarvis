@@ -7,6 +7,7 @@ create table if not exists b2c_leads (
   id uuid primary key,                 -- Lead Distro's own lead id (keeps re-sync idempotent)
   campaign_id uuid not null,
   supplier_id uuid,
+  buyer_id uuid,                       -- which installer client bought this lead, if any
   status text not null,                -- NEW / ACCEPTED / REJECTED / DISPUTED / EXPIRED / ...
   outcome text,
   state text,                          -- AU state, for geo breakdown later
@@ -24,6 +25,8 @@ create table if not exists b2c_leads (
 
 create index if not exists b2c_leads_campaign_id_idx on b2c_leads (campaign_id);
 create index if not exists b2c_leads_lead_created_at_idx on b2c_leads (lead_created_at);
+-- Safe to re-run even if b2c_leads already existed before buyer_id was added.
+alter table b2c_leads add column if not exists buyer_id uuid;
 
 -- campaign_id is `text`, not `uuid` — Lead Distro campaigns are UUIDs but
 -- Meta ad account/campaign ids are plain numeric strings, and this table
@@ -96,3 +99,27 @@ create table if not exists stripe_payments (
 );
 
 create index if not exists stripe_payments_paid_at_idx on stripe_payments (paid_at);
+
+-- Installer clients (the Clients page). Rows synced from Lead Distro
+-- (list_buyers + get_lead_breakdown) get lead_distro_buyer_id set and
+-- leads_purchased/total_revenue kept current on each sync; fully manual
+-- clients (not in Lead Distro yet) just have source='manual' and no
+-- buyer id. status flips to 'past' + churned_at set when a client leaves
+-- — that's what powers the real Churn Rate on Overview/B2B Pipeline.
+create table if not exists clients (
+  id uuid primary key default gen_random_uuid(),
+  lead_distro_buyer_id uuid unique,
+  name text not null,
+  status text not null default 'active' check (status in ('active', 'past')),
+  leads_purchased integer not null default 0,
+  total_revenue numeric(10, 2) not null default 0,
+  notes text,
+  source text not null default 'manual' check (source in ('manual', 'lead-distro')),
+  started_at date not null default current_date,
+  churned_at timestamptz,
+  synced_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists clients_status_idx on clients (status);
